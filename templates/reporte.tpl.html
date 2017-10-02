@@ -1,0 +1,78 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+#lista-table_filter{
+  margin-top:1em;
+  margin-bottom:1em;
+}
+#lista-table_paging{
+  color:red;
+}
+</style>
+{% endblock %}
+
+{% block content%}
+<!--agregar aqui el html -->
+<div class="botones-cabecera" style="display: flex;">
+  <div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de Examen</a>
+    <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Reporte</a>
+  </div>
+  <div class="pure-u-1 right">
+    <a class="button-secondary pure-button" href="/exportarExcelReporte">Exportar</a>
+    <a class="button-secondary pure-button" href="/importarExcel">Importar</a>
+  </div>
+</div>
+<h2>Reporte de Controladores</h2>
+<table id="lista-table" class="pure-table pure-table-bordered" style="width:100%">
+  <thead>
+    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Calificación</th><th id="table-arrow">Proceso</th><th id="table-arrow"># Veces que fue Convocado</th><th id="table-arrow"># Veces que Asistió</th><th id="table-arrow">Correo PUCP</th><th id="table-arrow">Acciones</th></tr>
+  <thead>
+  <tbody>
+    {% for reg in registros %}
+	    <tr class="registro">
+	    	<td>{{ reg.nombres }}</td>
+	    	<td>{{ reg.codigo }}</td>
+        <td>{{ reg.calificacion }}</td>
+        <td>{{ reg.nombre }}</td>
+        <td>{{ reg.nro_convocatorias }}</td>
+        <td>{{ reg.nro_asistencias }}</td>
+        <td>{{ reg.correo }}</td>
+        <td>
+          <a class="pure-button" href="/verControlador/{{ reg.codigo }}">
+            <i class="fa fa-eye"></i>
+            Ver
+          </a> 
+        </td>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+//es recomendable usar un script externo
+//jQuery esta incluido en base.tpl.html
+$(document).ready(function() {
+  $("#lista-table").DataTable({
+    "paging": true,
+    "info":false,
+        "language":{
+          "search": "Buscar: ",
+          "Show ": "Mostrar ",
+          "entries": "registros",
+          "Previous": "Anterior",
+          "Next": "Siguiente"
+        }
+  });
+
+  $("#lista-table_filter").addClass("pure-form");
+});
+
+</script>
+{% endblock %}

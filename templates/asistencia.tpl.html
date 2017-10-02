@@ -1,0 +1,280 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+#lista-table_filter{
+  margin-top:1em;
+  margin-bottom:1em;
+  display: none;
+}
+</style>
+{% endblock %}
+
+{% block content%}
+<!--agregar aqui el html -->
+<div class="pure-u-1 right">
+  <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Evaluación</a>
+  <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
+  <a class="pure-button" style="margin-top:5px;" id="asistencia" href="/01X9jK6g/">Asistencia Permisos Coordinador</a>
+</div>
+<h2>Registro de Asistencia para Coordinadores</h2>
+<div class="pure-u-1 pure-u-md-1-3 pure-form">
+  <form id="form-evaluacion">
+  	<label for="codigo">Código de Coordinador:</label>
+    <input id="input-codigo" name="codigo" maxlength="8" autofocus/>
+  </form>
+</div>
+<div class="highlight" id=box>
+  <h3 id="respuesta" class="blue"></h3>
+  <div id=asistentes>
+    {% for asist in asistentes %}
+      <div class=asistente>
+        <h3 id="asistente" class="blue">Asistente OCAI: {{ asist.nombres }}</h3>
+        <h3 style="display: none">{{ asist.codigo }}</h3>
+        <h3 style="display: none">{{ asist.cod_coord }}</h3>
+      </div>
+    {% endfor %}
+  </div>
+  <div id=apoyos>
+    {% for apoyo in apoyos %}
+      <div class=apoyo>
+        <h3 id="apoyo" class="blue">Apoyo OCAI: {{ apoyo.nombres }}</h3>
+        <h3 style="display: none">{{ apoyo.codigo }}</h3>
+        <h3 style="display: none">{{ apoyo.cod_coord }}</h3>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<table id="lista-table" class="pure-table pure-table-bordered" style="display: none; width:100%">
+  <thead>
+    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Aula</th><th id="table-arrow">Asistencia</th><th style="display:none;">Codigo Coordinador</th></tr>
+  <thead>
+  <tbody>
+    {% for reg in registros %}
+	    <tr class="registro">
+	    	<td>{{ reg.nombre }}</td>
+	    	<td>{{ reg.codigo }}</td>
+	    	<td>{{ reg.aula }}</td>
+	    	<td style="text-align: center;">
+        	<form class="pure-form" id="form-calificar">
+            <label for="option-asistencia" class="pure-radio">
+              <input id="option-asistencia" class="radio-asistencia" type="checkbox" name="optionsRadios" value="asistio" disabled>
+            </label>
+	        </form>
+          <p class="horas" style="display: none;">{{ reg.hora }}</p>
+      	</td>
+      	<td style="display:none;">{{ reg.cod_coord }}</td>
+	    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="botones" id="botones" style ="display: none;">
+  <button id="btn-save" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
+  <button id="btn-edit" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+
+function giveResponse(codigo){
+  coordinadores = ['00003807','20010260','00001753','00009737','00006337','00006990','00005340','20122040'];
+  nombres = ['VERA PORTOCARRERO BELTRÁN, JESÚS LESLY','ZARATE CORDOVA, JENNIFER KATHERINE','LIMO ROJAS, DARIO EDILBERTO','DIAZ GAVIDIA, ENRIQUE','QUIROZ GONZALEZ, JORGE LUIS MARTIN','BOLAÑOS HIDALGO, AUREA JULIA','PERALTA ARELLANO, JUAN OSCAR','ADMINISTRADOR DE SISTEMA']
+
+  if (coordinadores.indexOf(codigo) >= 0){
+    document.getElementById("box").style.display = "block";
+    document.getElementById("lista-table").style.display = "";
+    document.getElementById("botones").style.display = "";
+    document.getElementById("lista-table_filter").style.display = "block";
+    $("#input-codigo").attr("disabled","disabled");
+    document.getElementById("respuesta").innerHTML = "Coordinador: " + nombres[coordinadores.indexOf(codigo)];
+  }else{
+    document.getElementById("box").style.display = "block";
+    document.getElementById("lista-table").style.display = "none";
+    document.getElementById("botones").style.display = "none";
+    document.getElementById("lista-table_filter").style.display = "none";
+    $("#input-codigo").removeAttr("disabled").val("").focus();
+    document.getElementById("respuesta").innerHTML = codigo + " no es el código de un coordinador."
+  }
+}
+
+function editar(){
+  var radio = document.getElementsByClassName("radio-asistencia");
+  for(i=0;i<radio.length;i++){
+    radio[i].disabled = false;
+  }
+  blockSaveEdit();
+}
+
+function bloquear(){
+  var radio = document.getElementsByClassName("radio-asistencia");
+  for(i=0;i<radio.length;i++){
+    radio[i].disabled = true;
+  }
+}
+
+function guardar(){
+  var table,tr,td,label,form,input;
+  var j=0;
+  var asistencia = [];
+  var codigos = [];
+
+  table = document.getElementById("lista-table");
+  tr = table.getElementsByTagName("tr");
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    if(tr[i].style.display == "none"){
+
+    }else{
+      //Para obtener el valor del radio-button
+      td = tr[i].getElementsByTagName("td")[3];
+      if(td){
+        form = td.getElementsByTagName("form")[0];
+        if(form){
+          label = form.getElementsByTagName("label")[0];
+          if(label){
+            input = form.getElementsByTagName("input")[0];
+            if(input){
+              asistencia[j] = input.checked;
+            }
+          }
+        }
+      }
+      //Para obtener el código
+      td = tr[i].getElementsByTagName("td")[1];
+      if(td){
+        codigos[j] = td.innerHTML;
+        //alert(codigos[j]);
+      }
+      j=j+1;
+    }
+  }
+
+  for(j=1;j<codigos.length;j++){
+    alert(codigos[j] + " " + asistencia[j]);
+    $.post(
+      "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
+      {"codigo":codigos[j],"asistencia":asistencia[j]},
+       function(data){
+          
+      }
+    ).fail()   
+  }
+  alert("Las asistencia fue guardada correctamente");
+  bloquear();
+  blockSaveEdit();
+}
+
+function inicializarTabla(){
+  horas = document.getElementsByClassName("horas");
+  var radio = document.getElementsByClassName("radio-asistencia");
+  for (i = 0; i < radio.length; i++) {
+    //alert(valores[i].innerHTML);
+    if(horas[i].innerHTML == "None"){
+      radio[i].checked = false;
+    }else {
+      radio[i].checked = true;
+    }
+  }
+}
+
+function blockSaveEdit(){
+  var radio = document.getElementsByClassName("radio-asistencia");
+  var valor;
+  for(i=0;i<radio.length;i++){
+    valor = radio[i].disabled;
+  }
+  if(valor){
+    document.getElementById("btn-save").disabled = true;
+    document.getElementById("btn-edit").disabled = false;
+  }else{
+    document.getElementById("btn-save").disabled = false;
+    document.getElementById("btn-edit").disabled = true;
+  }
+}
+
+$(document).ready(function() {
+  $("#lista-table").DataTable({
+    "paging": false,
+    "info":false,
+        "language":{
+          "search": "Buscar: "
+        }
+  });
+
+  $("#lista-table_filter").addClass("pure-form");
+
+  inicializarTabla();
+  blockSaveEdit();
+
+$("#form-evaluacion").submit(function(){
+    // Declare variables 
+    var input, filter, table, tr, td, i;
+    input = document.getElementById("input-codigo").value;
+    filter = input.toUpperCase();
+    table = document.getElementById("lista-table");
+    tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[4];
+      if (td) {
+        //alert(td.innerHTML.toUpperCase());
+        if(filter == "20122040"){
+          tr[i].style.display = "";
+        }else {
+          if (td.innerHTML.toUpperCase() == filter){
+            tr[i].style.display = "";
+          } 
+          else {
+            //alert(td.innerHTML.toUpperCase());
+            tr[i].style.display = "none";
+          }
+        }
+      } 
+    }
+    //Show only the assistants and helpers of tha coordinator
+    var div, asistentes, apoyos,nombre,cod,as,ap;
+    div = document.getElementById("asistentes");
+    asistentes = div.getElementsByClassName("asistente");
+    if(asistentes){
+      for (i=0;i<asistentes.length;i++){
+        cod = asistentes[i].getElementsByTagName("h3")[2].innerHTML;
+        if(cod == input){
+          asistentes[i].getElementsByTagName("h3")[0].style.display = "";
+        }else{
+          asistentes[i].getElementsByTagName("h3")[0].style.display = "none";
+        }
+      }
+    }
+
+    div = document.getElementById("apoyos");
+    apoyos = div.getElementsByClassName("apoyo");
+    if(apoyos){
+      for (i=0;i<apoyos.length;i++){
+        cod = apoyos[i].getElementsByTagName("h3")[2].innerHTML;
+        if(cod == input){
+          apoyos[i].getElementsByTagName("h3")[0].style.display = "";
+        }else{
+          apoyos[i].getElementsByTagName("h3")[0].style.display = "none";
+        }
+      }
+    }
+    //delete input and give response
+    giveResponse(input);
+    $.post(
+      "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
+      {"codigo":input,"asistencia":"true"},
+       function(data){
+          
+      }
+    ).fail()  
+    return false;
+  });
+});
+
+
+</script>
+{% endblock %}
