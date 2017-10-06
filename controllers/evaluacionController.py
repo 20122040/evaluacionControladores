@@ -39,25 +39,18 @@ def reporte():
   reg = getReporteControladores()
   return render_template("reporte.tpl.html",registros = reg)
 
-@mod_evaluacion.route("/importar/",methods=['GET', 'POST'])
-def importar():
-  reg = getReporteControladores()
-  
+@mod_evaluacion.route("/upload", methods=['GET', 'POST'])
+def upload_file():
   if request.method == 'POST':
-    def person_init_func(row):
-      p = Persona(nombres = row['nombres'])
-      p.codigo = row['codigo'];
-      return p
-
-    def labor_init_func(row):
-      p = Persona.query.filter_by(codigo=row['codigo']).first()
-      l = LaborPorProceso(codigo = p.codigo,idproceso = row['idproceso'],aula =  row['aula'],cod_coord = row['cod_coord'])
-      return l
-
-    request.get_dict(field_name='file')
-    
-    return render_template("reporte.tpl.html",registros = reg)
-  return render_template("importar.tpl.html")
+    return jsonify({"result": request.get_array(field_name='file')})
+  return '''
+    <!doctype html>
+    <title>Upload an excel file</title>
+    <h1>Sube un archivo excel</h1>
+    <form action="" method=post enctype=multipart/form-data><p>
+    <input type=file name=file><input type=submit value=Upload>
+    </form>
+    '''
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])
 def procesarJSON():
@@ -91,6 +84,91 @@ def procesarJSONObs():
     #print("No se encontró el Controlador")
     return json.dumps(False)
 
+@mod_evaluacion.route("/procesarJSONEditar/",methods=["POST"])
+def procesarJSONEditar():
+  print("Estoy aquí")
+  codigo = request.form.get('codigo', '')
+  proceso = request.form.get('proceso','')
+  name = request.form.get('name', '')
+  email = request.form.get('email','')
+  labor = request.form.get('labor','')
+  aula = request.form.get('aula','')
+  aula_coord = request.form.get('aula_coord','')
+  cod_coord = request.form.get('cod_coord','')
+  calificacion = request.form.get('calificacion','')
+  obs_proceso = request.form.get('obs_proceso','')
+
+  controlador = getControladorProceso(codigo,proceso)
+  persona = getPersona(codigo)
+  print(codigo + "\n" + proceso)
+  print(name + "\n" + aula)
+  if controlador is not None:
+    print("Encontré controlador")
+    persona.nombres = name
+    persona.correo = email
+    if(labor=="CONTROLADOR"):
+      controlador.es_coord = 0
+      controlador.es_apoyo = 0
+      controlador.es_asistente = 0
+    elif(labor=="COORDINADOR"):
+      controlador.es_coord = 1
+      controlador.es_apoyo = 0
+      controlador.es_asistente = 0
+    elif(labor=="ASISTENTE"):
+      controlador.es_coord = 0
+      controlador.es_apoyo = 0
+      controlador.es_asistente = 1
+    elif(labor=="APOYO"):
+      controlador.es_coord = 0
+      controlador.es_apoyo = 1
+      controlador.es_asistente = 0
+    #controlador.labor = request.form.get('labor','')
+    controlador.aula = aula
+    controlador.aula_coord = aula_coord
+    controlador.cod_coord = cod_coord
+    controlador.calificacion = calificacion
+    controlador.obs_proceso = obs_proceso
+    db.session.commit()
+    return json.dumps(True)
+  else:
+    print("No se encontró el Controlador")
+    return json.dumps(False)
+
+@mod_evaluacion.route("/procesarJSONNuevo/",methods=["POST"])
+def procesarJSONNuevo():
+  #Agregando Persona
+  codigo = request.form.get('codigo', '')
+  name = request.form.get('name', '')
+  email = request.form.get('email','')
+
+  nuevo_controlador = getPersona(codigo);
+
+  if nuevo_controlador is not None:
+    nuevo_controlador.nombres = name;
+    nuevo_controlador.email = email;
+  else:
+    controlador = Persona(codigo,name,email,0,0)
+    db.session.add(controlador)
+  db.session.commit()
+
+  #Agregando Labor_Por_Proceso
+  proceso = request.form.get('proceso','')  
+  labor = request.form.get('labor','')
+  aula = request.form.get('aula','')
+  aula_coord = request.form.get('aula_coord','')
+  cod_coord = request.form.get('cod_coord','')
+  if(labor=="CONTROLADOR"):
+    lxp = LaborPorProceso(codigo,proceso,0,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+  elif(labor=="COORDINADOR"):
+    lxp = LaborPorProceso(codigo,proceso,1,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+  elif(labor=="ASISTENTE"):
+    lxp = LaborPorProceso(codigo,proceso,0,0,1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+  elif(labor=="APOYO"): 
+    lxp = LaborPorProceso(codigo,proceso,0,1,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+  #controlador.labor = request.form.get('labor','')
+  db.session.add(lxp)
+  db.session.commit()
+  return json.dumps(True)
 
 @mod_evaluacion.route("/procesarJSONAsist/",methods=["POST"])
 def procesarJSONAsist():
@@ -173,6 +251,27 @@ def verControlador(codigo=None):
       procesos = obtenerProcesosControlador(codigo)
       return render_template('controlador_view.tpl.html',registro=reg,procesos=procesos)
 
+@mod_evaluacion.route('/editarControlador/<codigo>/<idproceso>')
+def editarControlador(codigo=None,idproceso=None):
+    if (idproceso == None):
+      return render_template('Error.html', codigo=codigo)
+    else:
+      reg = obtenerControladorProceso(codigo,idproceso)
+      return render_template('controlador_edit.tpl.html',registro=reg)
+
+@mod_evaluacion.route('/nuevoControlador/')
+def nuevoControlador():
+  pro = obtenerProcesos()
+  return render_template('controlador_new.tpl.html',procesos=pro)
+
+def obtenerProcesos():
+  query = Proceso.query.add_columns(
+      Proceso.nombre,
+      Proceso.idproceso,
+      Proceso.fecha,
+    )
+  return query
+
 def getCoordinadoresUltimoProceso():
   #consultar bd y devolver data de la forma
   joinQuery = (
@@ -202,6 +301,32 @@ def obtenerControlador(codigo):
     )
     .filter(
       Persona.codigo == codigo,
+    )
+  )
+  return joinQuery.first()
+
+def obtenerControladorProceso(codigo,idproceso):
+  #consultar bd y devolver data de la forma
+  joinQuery = (
+    Persona.query.join(LaborPorProceso,LaborPorProceso.codigo==Persona.codigo).join(Proceso,Proceso.idproceso == LaborPorProceso.idproceso)
+    .add_columns(
+      Persona.codigo,
+      Persona.nombres,
+      Persona.correo,
+      Proceso.nombre,
+      LaborPorProceso.es_coord,
+      LaborPorProceso.idproceso,
+      LaborPorProceso.es_apoyo,
+      LaborPorProceso.es_asistente,
+      LaborPorProceso.aula,
+      LaborPorProceso.aula_coord,
+      LaborPorProceso.cod_coord,
+      LaborPorProceso.calificacion,
+      LaborPorProceso.obs_proceso
+    )
+    .filter(
+      and_(Persona.codigo == codigo,
+           LaborPorProceso.idproceso == idproceso)
     )
   )
   return joinQuery.first()
@@ -243,6 +368,22 @@ def getControlador(codigo):
   joinQuery = joinQuery.filter(
                 and_(LaborPorProceso.codigo == codigo,
                 Proceso.es_ultimo == 1)
+              )              
+  return joinQuery.first()
+
+def getPersona(codigo):
+  joinQuery = Persona.query.join(LaborPorProceso,LaborPorProceso.codigo == Persona.codigo)
+  joinQuery = joinQuery.filter(
+                Persona.codigo == codigo
+              )              
+  return joinQuery.first()
+
+
+def getControladorProceso(codigo,proceso):
+  joinQuery = LaborPorProceso.query.join(Proceso,LaborPorProceso.idproceso==Proceso.idproceso)
+  joinQuery = joinQuery.filter(
+                and_(LaborPorProceso.codigo == codigo,
+                    LaborPorProceso.idproceso == proceso)
               )              
   return joinQuery.first()
 

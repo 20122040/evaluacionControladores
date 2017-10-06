@@ -24,7 +24,8 @@
   </div>
   <div class="pure-u-1 right">
     <a class="button-secondary pure-button" href="/exportarExcelReporte">Exportar</a>
-    <a class="button-secondary pure-button" href="/importarExcel">Importar</a>
+    <a class="button-secondary pure-button" href="/upload">Importar</a>
+    <a class="button-success pure-button" href="/nuevoControlador/">Nuevo <i class="fa fa-plus-square" style="color: green;"></i></a>
   </div>
 </div>
 <h2>Reporte de Controladores</h2>
@@ -43,10 +44,14 @@
         <td>{{ reg.nro_asistencias }}</td>
         <td>{{ reg.correo }}</td>
         <td>
-          <a class="pure-button" href="/verControlador/{{ reg.codigo }}">
-            <i class="fa fa-eye"></i>
-            Ver
-          </a> 
+          <div style="display: flex;">
+            <a class="pure-button" href="/verControlador/{{ reg.codigo }}">
+              <i class="fa fa-eye" style="color: green;"></i>
+            </a> 
+            <a class="pure-button" href="/editarControlador/{{ reg.codigo }}/{{ reg.idproceso }}">
+              <i class="fa fa-pencil" style="color:blue;"></i>
+            </a> 
+          </div>
         </td>
     {% endfor %}
   </tbody>

@@ -1,0 +1,117 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content%}
+
+<!--agregar aqui el html -->
+<div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Regresar</a>
+</div>
+
+<h1>Nuevo Controlador</h1>
+    
+<form class="pure-form pure-form-aligned" id="form-editar">
+  <fieldset>  
+    <div class="pure-control-group">
+      <label for="codigo">Codigo: </label>
+        <input id="codigo" type="text" placeholder="" style="width: 25em;" required>
+    </div>
+
+    <div class="pure-control-group">
+      <label for="name">Nombres: </label>
+        <input id="name" type="text" placeholder="" style="width: 25em;" required>
+    </div>
+
+    <div class="pure-control-group">
+      <label for="email">Correo PUCP: </label>
+        <input id="email" type="text" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+        <label for="proceso">Proceso: </label>
+        <select id="proceso">
+          {% for proceso in procesos %}
+            <option value="{{ proceso.idproceso }}"> 
+              {{ proceso.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+    </div>
+
+    <div class="pure-control-group">
+        <label for="labor">Labor: </label>
+        <select id="labor">
+            <option>CONTROLADOR</option>
+            <option>COORDINADOR</option>
+            <option>ASISTENTE</option>
+            <option>APOYO</option>
+        </select>
+    </div>
+
+    <div class="pure-control-group">
+      <label for="aula">Aula: </label>
+        <input id="aula" type="text" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+      <label for="aula_coord">Aula de Coordinación: </label>
+        <input id="aula_coord" type="text" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+      <label for="cod_coord">Código de Coordinador: </label>
+        <input id="cod_coord" type="text" placeholder="" style="width: 25em;">
+    </div>
+
+    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
+    <div class="loader" id="loading2" style="display: none; position: center;"></div>
+  </fieldset>
+  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
+</form>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+
+function myFunction(){
+  $('#loading2').hide();
+}
+
+$(document).ready(function(){
+  var hideResult;
+  $("#form-editar").submit(function(){
+    var codigo = $("#codigo").val();
+    var name = $("#name").val();
+    var proceso = $("#proceso option:selected" ).val();
+    var email = $("#email").val();
+    var labor = $("#labor").val();
+    var aula = $("#aula").val();
+    var aula_coord = $("#aula_coord").val();
+    var cod_coord = $("#cod_coord").val();
+    //alert(codigo + "\n" + name + "\n" + email + "\n" + proceso + "\n" +labor + "\n" + aula + "\n" + aula_coord + "\n" + cod_coord);
+    //alert("Estoy aquí")
+    
+    $.post(
+      "{{ url_for(request.script_root+'.procesarJSONNuevo') }}",
+      {"codigo":codigo,"proceso":proceso,"name":name,"email":email,"labor":labor,"aula":aula,"aula_coord":aula_coord,"cod_coord":cod_coord},
+      function(data){
+        $('#loading2').show();
+        setTimeout(myFunction, 5000);
+      }
+    ).fail();
+    alert("Controlador registrado")
+    return false;
+  });
+});
+</script>
+{% endblock %}
