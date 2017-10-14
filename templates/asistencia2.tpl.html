@@ -301,12 +301,9 @@ function guardar(){
       if(td){
         form = td.getElementsByTagName("form")[0];
         if(form){
-          label = form.getElementsByTagName("label")[0];
-          if(label){
-            input = form.getElementsByTagName("input")[0];
-            if(input){
-              asistencia[j] = input.checked;
-            }
+          input = form.getElementsByTagName("input")[0];
+          if(input){
+            asistencia[j] = input.checked;
           }
         }
       }

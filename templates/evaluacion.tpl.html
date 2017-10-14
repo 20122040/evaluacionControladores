@@ -209,12 +209,9 @@ function guardarAsistenciaGeneral(){
       if(td){
         form = td.getElementsByTagName("form")[0];
         if(form){
-          label = form.getElementsByTagName("label")[0];
-          if(label){
-            input = form.getElementsByTagName("input")[0];
-            if(input){
-              asistencia[j] = input.checked;
-            }
+          input = form.getElementsByTagName("input")[0];
+          if(input){
+            asistencia[j] = input.checked;
           }
         }
       }
@@ -228,7 +225,7 @@ function guardarAsistenciaGeneral(){
   }
 
   for(j=1;j<codigos.length;j++){
-    //alert(codigos[j] + " " + asistencia[j]);
+    alert(codigos[j] + " " + asistencia[j]);
     $.post(
       "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
       {"codigo":codigos[j],"asistencia":asistencia[j]},
