@@ -83,6 +83,8 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='js/asistencia.js') }}" type="text/javascript"></script>
+
 <script>
 
 function giveResponse(aula){
@@ -98,35 +100,6 @@ function giveResponse(aula){
     $("#cmb_aula").attr("disabled","disabled");
   }
 }
-
-function editar(){
-  var txt = document.getElementsByClassName("text-obs");
-  for(i=0;i<txt.length;i++){
-    txt[i].disabled = false;
-  }
-
-  var radio = document.getElementsByClassName("radio-asistencia");
-  for(i=0;i<radio.length;i++){
-    radio[i].disabled = false;
-  }
-  blockSaveEdit();
-}
-
-function blockSaveEdit(){
-  var radio = document.getElementsByClassName("radio-asistencia");
-  if(radio[2].disabled){
-    document.getElementById("btn-save").disabled = true;
-    document.getElementById("btn-edit").disabled = false;
-    document.getElementById("btn-save2").disabled = true;
-    document.getElementById("btn-edit2").disabled = false;
-  }else{
-    document.getElementById("btn-save").disabled = false;
-    document.getElementById("btn-edit").disabled = true;
-    document.getElementById("btn-save2").disabled = false;
-    document.getElementById("btn-edit2").disabled = true;
-  }
-}
-
 
 function inicializarTabla(){
   horas = document.getElementsByClassName("horas-controlador");
@@ -216,15 +189,6 @@ function guardarObs(){
   
 }
 
-function myFunction(){
-  $('#loading2').hide();
-  $('#btn-save').attr('disabled',false);
-  $('#btn-edit').attr('disabled','disabled');
-  $('#btn-save2').attr('disabled',false);
-  $('#btn-edit2').attr('disabled','disabled');
-  blockSaveEdit();
-}
-
 function filtrarTabla(){
    // Declare variables 
   var input, filter, table, tr, td, i;
@@ -269,18 +233,6 @@ function filtrarTabla(){
   numero.style.display = "";
   
   giveResponse(input);
-}
-
-function bloquear(){
-  var txt = document.getElementsByClassName("text-obs");
-  for(i=0;i<txt.length;i++){
-    txt[i].disabled = true;
-  }
-
-  var radio = document.getElementsByClassName("radio-asistencia");
-  for(i=0;i<radio.length;i++){
-    radio[i].disabled = true;
-  }
 }
 
 function guardar(){

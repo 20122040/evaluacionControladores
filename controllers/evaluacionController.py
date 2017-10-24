@@ -17,21 +17,21 @@ def example():
 
 @mod_evaluacion.route("/exportarExcelAsistencia/",methods=['GET'])
 def exportarExcelAsistencia():
-  resultados = funciones.getReporteAsistencia()
+  resultados = reportes.getReporteAsistencia()
   column_names = ['codigo', 'nombres','cod_coord','aula_capacitacion','hora_capacitacion','obs_capacitacion']
   return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte Capacitación")
 
 @mod_evaluacion.route("/exportarExcelEvaluacion/",methods=['GET'])
 def exportarExcelEvaluacion():
-  resultados = funciones.getReporteEvaluacion()
-  proceso = funciones.getUltimoProceso()
+  resultados = reportes.getReporteEvaluacion()
+  proceso = procesos.getUltimoProceso()
   nombreFile = "Evaluación de Colaboradores (" + proceso.nombre + " - " + str(proceso.fecha) + ")"
   column_names = ['codigo', 'nombres', 'aula','cod_coord','es_coord','es_apoyo','es_asistente','hora_proceso','calificacion','obs_proceso']
   return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name=nombreFile)
 
 @mod_evaluacion.route("/exportarExcelReporte/",methods=['GET'])
 def exportarExcelReporte():
-  resultados = funciones.getReporte()
+  resultados = reportes.getReporte()
   column_names = ['codigo', 'nombres', 'nombre','calificacion','obs_proceso','nro_convocatorias','nro_asistencias','correo']
   return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte General")
 
@@ -59,8 +59,7 @@ def importar():
     codigo = sheet.cell(r,0).value
     nombres = sheet.cell(r,1).value
     correo = sheet.cell(r,2).value
-
-    nuevo_controlador = funciones.getPersonaSola(codigo);
+    nuevo_controlador = personas.getPersonaSola(codigo);
     if nuevo_controlador is None:
       print("No se encontró código")
       controlador = Persona(codigo,nombres,correo,0,0)
@@ -88,7 +87,7 @@ def procesarJSON():
   calificacion = request.form.get('calificacion', '')
   observaciones = request.form.get('observaciones', '')
   #print(codigo + " " + calificacion + " " +observaciones)
-  controlador = funciones.getControlador(codigo)
+  controlador = personas.getControlador(codigo)
   if controlador is not None:
     #print(controlador.codigo)
     controlador.calificacion = calificacion
@@ -104,7 +103,7 @@ def procesarJSONObs():
   codigo = request.form.get('codigo', '')
   observaciones = request.form.get('observaciones', '')
   #print(codigo[1] + " " + calificacion[1] + " " +observaciones[1])
-  controlador = funciones.getControlador(codigo)
+  controlador = personas.getControlador(codigo)
   if controlador is not None:
     #print(controlador.codigo)
     controlador.obs_capacitacion = observaciones
@@ -128,7 +127,7 @@ def procesarJSONEditar():
   calificacion = request.form.get('calificacion','')
   obs_proceso = request.form.get('obs_proceso','')
 
-  controlador = funciones.getPersonaEditar(codigo,proceso)
+  controlador = personas.getPersonaEditar(codigo,proceso)
   persona = funciones.getPersonaSola(codigo)
   print(codigo + "\n" + proceso)
   print(name + "\n" + aula)
@@ -230,10 +229,8 @@ def procesarJSONNuevo():
 def procesarJSONAsist():
   codigo = request.form.get('codigo', '')
   asistencia = request.form.get('asistencia', '')
-  controlador = funciones.getControlador(codigo)
+  controlador = personas.getControlador(codigo)
   if controlador is not None:
-    #print(controlador.codigo)
-    #print(codigo + " " + asistencia)
     if(asistencia == "true"):
       controlador.hora_proceso = datetime.now().time()
     elif (asistencia == "false"):
@@ -242,14 +239,13 @@ def procesarJSONAsist():
     time.sleep(1)
     return json.dumps(True)
   else:
-    #print("No se encontró el Controlador")
     return json.dumps(False)
 
 @mod_evaluacion.route("/procesarJSONAsistCap/",methods=["POST"])
 def procesarJSONAsistCap():
   codigo = request.form.get('codigo', '')
   asistencia = request.form.get('asistencia', '')
-  controlador = funciones.getControlador(codigo)
+  controlador = personas.getControlador(codigo)
   print("Estoy aquí, mi código es:")
   print(controlador.codigo);
   if controlador is not None:
@@ -294,8 +290,8 @@ def verControlador(codigo=None):
     if (codigo == None):
       return render_template('Error.html', codigo=codigo)
     else:
-      reg = funciones.obtenerControladorPorProceso(codigo)
-      procesos = funciones.obtenerProcesosControlador(codigo)
+      reg = personas.obtenerControladorPorProceso(codigo)
+      procesos = procesos.obtenerProcesosControlador(codigo)
       return render_template('controlador_view.tpl.html',registro=reg,procesos=procesos)
 
 @mod_evaluacion.route('/editarControlador/<codigo>/<idproceso>')
@@ -303,78 +299,10 @@ def editarControlador(codigo=None,idproceso=None):
     if (idproceso == None):
       return render_template('Error.html', codigo=codigo)
     else:
-      reg = funciones.obtenerControladorPorProceso(codigo,idproceso)
+      reg = personas.obtenerControladorPorProceso(codigo,idproceso)
       return render_template('controlador_edit.tpl.html',registro=reg)
 
 @mod_evaluacion.route('/nuevoControlador/')
 def nuevoControlador():
-  pro = funciones.obtenerProcesos()
+  pro = procesos.obtenerProcesos()
   return render_template('controlador_new.tpl.html',procesos=pro)
-
-
-
-"""
-def getAsistenciaTodosLosControladores():
-  joinQuery = Persona.query.join(LaborPorProceso,LaborPorProceso.codigo==Persona.codigo)
-  joinQuery = joinQuery.filter(
-                and_(LaborPorProceso.es_coord == 0,
-                LaborPorProceso.es_apoyo == 0,
-                LaborPorProceso.es_asistente == 0, 
-                LaborPorProceso.hora_proceso.isnot(None),)
-              )
-  return joinQuery
-
-"""
-
-"""
-def getConvocatoriaTodosLosControladores():
-  joinQuery = Persona.query.join(LaborPorProceso,LaborPorProceso.codigo==Persona.codigo)
-  joinQuery = joinQuery.filter(
-                and_(LaborPorProceso.es_coord == 0,
-                LaborPorProceso.es_apoyo == 0,
-                LaborPorProceso.es_asistente == 0)
-              )
-  return joinQuery
-
-def actualizarDatos():
-  controladores = getAsistenciaTodosLosControladores()
-  print("query 1")
-  #controlador = query.getAsDictEval(1)
-  for controlador in controladores:
-  #  controlador.nro_asistencias = controlador.nro_asistencias + 1
-  #controladores = getConvocatoriaTodosLosControladores()
-  #for controlador in controladores:
-  #  controlador.nro_convocatorias = controlador.nro_convocatorias + 1
-  #db.session.commit()
-  #controlador['persona']['nro_convocatorias'] = controlador['persona']['nro_convocatorias'] + 1
-  #if(controlador['calificacion'] != "0"):
-  #  controlador['persona']['nro_asistencias'] = controlador['persona']['nro_asistencias'] + 1
-"""
-
-"""
-def getRegistroAsistencia(codigo):
-  joinQuery = RegistroAsistencia.query.join(Colegio,RegistroAsistencia.codigo==Colegio.codigo)
-  joinQuery = joinQuery.filter(
-                or_(Colegio.codigo==codigo),
-                #RegistroAsistencia.fecha == datetime.now().date()
-              )
-  return joinQuery.first()
-
-def getAsistencia():
-  dt = datetime.now()
-  #consultar bd y devolver data de la forma
-  joinQuery = (
-    Controlador.query.join(RegistroAsistencia,RegistroAsistencia.codigo==Colegio.codigo)
-    .add_columns(
-      Controlador.codigo,
-      Controladr.nombre,
-      Controlador.aula
-      Proceso.nombre,
-      Proceso.fecha
-    )
-    .filter(
-      Proceso.fecha = datetime.now()
-    )
-  )
-  return joinQuery
- """
