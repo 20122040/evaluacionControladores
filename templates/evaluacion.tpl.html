@@ -92,6 +92,14 @@
   <button id="btn-save" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
   <button id="btn-edit" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
 </div>
+<div class="highlight" id="comentario" style="margin-top: 2em;">
+  <p>Comentarios de la Coordinación:</p>
+  <form class="pure-form">
+    <textarea type = "text" id="comentario-general" class= "text-obs" style="width:95%;" disabled= class="pure-input-1-2">
+      
+    </textarea>
+  </form>
+</div>
 <table id="lista-table" class="pure-table pure-table-bordered" style="display: none; width:100%">
   <div class="loader" id="loading2" style="display: none;"></div>
   <thead>
@@ -150,10 +158,15 @@
 function editar(){
   var cmb = document.getElementsByClassName("combo_calificacion");
   var txt = document.getElementsByClassName("text-obs");
+  var comment_box = document.getElementById("comentario-general");
+  comment_box.disabled = false;
   for(i=0;i<cmb.length;i++){
     cmb[i].disabled = false;
-    txt[i].disabled = false;
 	}
+
+  for(i=0;i<txt.length;i++){
+    txt[i].disabled = false;
+  }
 
   var radio = document.getElementsByClassName("radio-asistencia");
   for(i=0;i<radio.length;i++){
@@ -165,8 +178,13 @@ function editar(){
 function bloquear(){
 	var cmb = document.getElementsByClassName("combo_calificacion");
   var txt = document.getElementsByClassName("text-obs");
+  var comment_box = document.getElementById("comentario-general");
+  comment_box.disabled = true;
   for(i=0;i<cmb.length;i++){
     cmb[i].disabled = true;
+  }
+
+  for(i=0;i<txt.length;i++){
     txt[i].disabled = true;
   }
 
@@ -225,7 +243,7 @@ function guardarAsistenciaGeneral(){
   }
 
   for(j=1;j<codigos.length;j++){
-    alert(codigos[j] + " " + asistencia[j]);
+    //alert(codigos[j] + " " + asistencia[j]);
     $.post(
       "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
       {"codigo":codigos[j],"asistencia":asistencia[j]},
@@ -319,7 +337,11 @@ function guardar(){
 	var calificacion = [];
 	var observaciones = [];
 	var codigos = [];
+  var codCoord = document.getElementById("input-codigo").value;
+  //alert(codCoord);
 	//bloquear();
+  var comentarioGeneral = document.getElementById("comentario-general").value;
+  //alert(codCoord + " " +comentarioGeneral);
 	table = document.getElementById("lista-table");
   tr = table.getElementsByTagName("tr");
   // Loop through all table rows, and hide those who don't match the search query
@@ -359,10 +381,13 @@ function guardar(){
 
   noGuardar = faltaObservaciones();
   
+  codigos[0] = codCoord;
+  observaciones[0] = comentarioGeneral;
+  calificacion[0] = "BUENO"
   if(noGuardar){
     alert("Por favor, complete el campo de observaciones si calificó como REGULAR o MALO");
   } else {
-    for(j=1;j<codigos.length;j++){
+    for(j=0;j<codigos.length;j++){
       //alert(codigos[j] + " " + calificacion[j] + " " + observaciones[j]);
       //Aquí probablemente va la función para guardar
       $.post(
@@ -382,7 +407,7 @@ function guardar(){
     $('#btn-edit').attr('disabled','disabled');
     $('#btn-save2').attr('disabled','disabled');
     $('#btn-edit2').attr('disabled','disabled');
-    setTimeout(myFunction, 5000)
+    setTimeout(myFunction, 30000)
   }
 }
 
@@ -484,6 +509,7 @@ function giveResponse(codigo,password){
     modificar_box("01123581");
     //document.getElementById("cabecera_fecha").style.display = ""
     document.getElementById("box").style.display = "block";
+    document.getElementById("comentario").style.display = "block";
     document.getElementById("marcarTodos").style.display = "block";
     document.getElementById("lista-table").style.display = "";
     document.getElementById("botones").style.display = "";
@@ -498,6 +524,7 @@ function giveResponse(codigo,password){
     if(es_password(codigo,password)){
       modificar_box(codigo);
       document.getElementById("box").style.display = "block";
+      document.getElementById("comentario").style.display = "block";
       document.getElementById("marcarTodos").style.display = "block";
       document.getElementById("lista-table").style.display = "";
       document.getElementById("botones").style.display = "";
@@ -515,6 +542,7 @@ function giveResponse(codigo,password){
 	}else {
     modificar_box("01123581");
     document.getElementById("box").style.display = "block";
+    document.getElementById("comentario").style.display = "none";
     document.getElementById("numero").style.display = "none";
     document.getElementById("lista-table").style.display = "none";
     document.getElementById("botones").style.display = "none";
@@ -566,9 +594,29 @@ function inicializarTabla(){
         tr[i].style.color = "blue";
         tr[i].style.fontWeight = "bold"; 
       }
+      codCoord = document.getElementById("input-codigo").value;
+      if((p3 == 1)&&(p2 == 0)&&(p1 == 0)){
+        td1 = tr[i].getElementsByTagName("td")[1];
+        if(td1){
+          codigo = td1.innerHTML;
+          if(codigo == codCoord){
+            td5 = tr[i].getElementsByTagName("td")[5];
+            if(td5){
+              form = td5.getElementsByTagName("form")[0];
+              if(form){
+                textarea = form.getElementsByTagName("textarea")[0];
+                if(textarea){
+                  com = textarea.innerHTML;
+                  document.getElementById("comentario-general").innerHTML = com;
+                }
+              }
+            }
+          }
+        }
+      }
     } 
   }
-
+  
 }
 
 $(document).ready(function() {
@@ -619,6 +667,41 @@ $(document).ready(function() {
           	//alert(td.innerHTML.toUpperCase());
           	tr[i].style.display = "none";
         	}
+        }
+      } 
+    }
+
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[0];
+      if (td) {
+        //alert(td.innerHTML.toUpperCase());
+        p1 = td.getElementsByTagName("p")[0].innerHTML;
+        p2 = td.getElementsByTagName("p")[1].innerHTML;
+        p3 = td.getElementsByTagName("p")[2].innerHTML;
+        //alert(p1 + " " + p2)
+        if((p2 == 1)||(p1 == 1)||(p3 == 1)){
+          tr[i].style.color = "blue";
+          tr[i].style.fontWeight = "bold"; 
+        }
+        codCoord = document.getElementById("input-codigo").value;
+        if((p3 == 1)&&(p2 == 0)&&(p1 == 0)){
+          td1 = tr[i].getElementsByTagName("td")[1];
+          if(td1){
+            codigo = td1.innerHTML;
+            if(codigo == codCoord){
+              td5 = tr[i].getElementsByTagName("td")[5];
+              if(td5){
+                form = td5.getElementsByTagName("form")[0];
+                if(form){
+                  textarea = form.getElementsByTagName("textarea")[0];
+                  if(textarea){
+                    com = textarea.innerHTML;
+                    document.getElementById("comentario-general").innerHTML = com;
+                  }
+                }
+              }
+            }
+          }
         }
       } 
     }
