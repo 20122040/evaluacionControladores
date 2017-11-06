@@ -7,7 +7,7 @@ function myFunction(){
   blockSaveEdit();
 }
 
-function blockSaveEdit(){
+function blockSaveEdit(option){
   var radio = document.getElementsByClassName("radio-asistencia");
   if(radio){
     if(radio[2].disabled){
@@ -22,20 +22,23 @@ function blockSaveEdit(){
       document.getElementById("btn-edit2").disabled = true;
     } 
   }
-  var cmb = document.getElementsByClassName("combo_calificacion");
-  if(cmb){
-    if(cmb[2].disabled){
-      document.getElementById("btn-save").disabled = true;
-      document.getElementById("btn-edit").disabled = false;
-      document.getElementById("btn-save2").disabled = true;
-      document.getElementById("btn-edit2").disabled = false;
-    }else{
-      document.getElementById("btn-save").disabled = false;
-      document.getElementById("btn-edit").disabled = true;
-      document.getElementById("btn-save2").disabled = false;
-      document.getElementById("btn-edit2").disabled = true;
+  if(option == 1){
+    var cmb = document.getElementsByClassName("combo_calificacion");
+    if(cmb){
+      if(cmb[2].disabled){
+        document.getElementById("btn-save").disabled = true;
+        document.getElementById("btn-edit").disabled = false;
+        document.getElementById("btn-save2").disabled = true;
+        document.getElementById("btn-edit2").disabled = false;
+      }else{
+        document.getElementById("btn-save").disabled = false;
+        document.getElementById("btn-edit").disabled = true;
+        document.getElementById("btn-save2").disabled = false;
+        document.getElementById("btn-edit2").disabled = true;
+      }
     }
   }
+
 }
 
 function editar(){

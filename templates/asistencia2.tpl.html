@@ -63,7 +63,7 @@
           <form class="pure-form" id="form-calificar">
             <input id="option-asistencia" class="radio-asistencia" type="checkbox" value="asistio" disabled>
           </form>
-          <p class="horas-controlador" style="display: none;">{{ reg.hora_proceso }}</p>
+          <p class="horas-controlador" style="display: none;">{{ reg.hora_capacitacion }}</p>
         </td>
         <td>
           <form class="pure-form">
@@ -90,15 +90,12 @@
 function giveResponse(aula){
   //coordinadores = ['N-201','N-301','N-302','N-303','N-304','N-311'];
   //nombres = ['VERA PORTOCARRERO BELTRÁN, JESÚS LESLY','ZARATE CORDOVA, JENNIFER KATHERINE','LIMO ROJAS, DARIO EDILBERTO','DIAZ GAVIDIA, ENRIQUE','QUIROZ GONZALEZ, JORGE LUIS MARTIN','BOLAÑOS HIDALGO, AUREA JULIA','PERALTA ARELLANO, JUAN OSCAR','ADMINISTRADOR DE SISTEMA','RESERVA']
-
-  if (1){
-    //document.getElementById("box").style.display = "block";
-    document.getElementById("export-button").style.display = "";
-    document.getElementById("lista-table").style.display = "";
-    //document.getElementById("botones").style.display = "";
-    document.getElementById("lista-table_filter").style.display = "block";
-    $("#cmb_aula").attr("disabled","disabled");
-  }
+  //document.getElementById("box").style.display = "block";
+  document.getElementById("export-button").style.display = "";
+  document.getElementById("lista-table").style.display = "";
+  //document.getElementById("botones").style.display = "";
+  document.getElementById("lista-table_filter").style.display = "block";
+  $("#cmb_aula").attr("disabled","disabled");
 }
 
 function inicializarTabla(){
@@ -135,58 +132,6 @@ function inicializarTabla(){
   }
 
   blockSaveEdit();
-}
-
-function guardarObs(){
-  var table,tr,td,select,form;
-  var j=0;
-  var calificacion = [];
-  var observaciones = [];
-  var codigos = [];
-  table = document.getElementById("lista-table");
-  tr = table.getElementsByTagName("tr");
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    if(tr[i].style.display == "none"){
-    } else {
-      //Para obtener el valor del text area
-      td = tr[i].getElementsByTagName("td")[4];
-      if(td){
-        form = td.getElementsByTagName("form")[0];
-        if(form){
-          textarea = form.getElementsByTagName("textarea")[0];
-          if(textarea){
-            observaciones[j] = textarea.value;
-          }
-        }
-      }
-      //Para obtener el código
-      td = tr[i].getElementsByTagName("td")[1];
-      if(td){
-        codigos[j] = td.innerHTML;
-      }
-      j=j+1;
-    }
-  }
-  
-  try {
-    for(j=1;j<codigos.length;j++){
-      //alert(codigos[j] + " " + calificacion[j] + " " + observaciones[j]);
-      //Aquí probablemente va la función para guardar
-      $.post(
-        "{{ url_for(request.script_root+'.procesarJSONObs') }}",
-        {"codigo":codigos[j],"observaciones":observaciones[j]},
-        function(data){
-          
-        }
-      ).fail()
-    } 
-
-  }
-  catch(err) {
-    alert("Hubo un error al guardar los datos.");
-  }
-  
 }
 
 function filtrarTabla(){
@@ -240,6 +185,7 @@ function guardar(){
   var j=0;
   var asistencia = [];
   var codigos = [];
+  var observaciones = [];
 
   table = document.getElementById("lista-table");
   tr = table.getElementsByTagName("tr");
@@ -259,6 +205,17 @@ function guardar(){
           }
         }
       }
+      //Para obtener las observaciones
+      td = tr[i].getElementsByTagName("td")[4];
+      if(td){
+        form = td.getElementsByTagName("form")[0];
+        if(form){
+          textarea = form.getElementsByTagName("textarea")[0];
+          if(textarea){
+            observaciones[j] = textarea.value;
+          }
+        }
+      }
       //Para obtener el código
       td = tr[i].getElementsByTagName("td")[1];
       if(td){
@@ -271,21 +228,21 @@ function guardar(){
   for(j=1;j<codigos.length;j++){
     //alert(codigos[j] + " " + asistencia[j]);
     $.post(
-      "{{ url_for(request.script_root+'.procesarJSONAsistCap') }}",
-      {"codigo":codigos[j],"asistencia":asistencia[j]},
+      "{{ url_for(request.script_root+'.procesarJSON') }}",
+      {"codigo":codigos[j],"observaciones":observaciones[j],"asistencia":asistencia[j],"option":'0'},
        function(data){
       }
     ).fail()   
   }
-  guardarObs();
+  //guardarObs();
   bloquear();
-  alert("Espere por lo menos 5 segundos hasta que los datos sean guardados.")
+  alert("Espere un minuto hasta que se registre la asistencia.")
   $('#loading2').show();
   $('#btn-save').attr('disabled','disabled');
   $('#btn-edit').attr('disabled','disabled');
   $('#btn-save2').attr('disabled','disabled');
   $('#btn-edit2').attr('disabled','disabled');
-  setTimeout(myFunction, 30000)
+  setTimeout(myFunction, 10000)
 }
 
 function exportar(){

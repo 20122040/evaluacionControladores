@@ -158,50 +158,6 @@
 //es recomendable usar un script externo
 //jQuery esta incluido en base.tpl.html
 
-function guardarAsistenciaGeneral(){
-  var table,tr,td,label,form,input;
-  var j=0;
-  var asistencia = [];
-  var codigos = [];
-
-  table = document.getElementById("lista-table");
-  tr = table.getElementsByTagName("tr");
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    if(tr[i].style.display == "none"){
-
-    }else{
-      //Para obtener el valor del radio-button
-      td = tr[i].getElementsByTagName("td")[3];
-      if(td){
-        form = td.getElementsByTagName("form")[0];
-        if(form){
-          input = form.getElementsByTagName("input")[0];
-          if(input){
-            asistencia[j] = input.checked;
-          }
-        }
-      }
-      //Para obtener el código
-      td = tr[i].getElementsByTagName("td")[1];
-      if(td){
-        codigos[j] = td.innerHTML;
-      }
-      j=j+1;
-    }
-  }
-  for(j=1;j<codigos.length;j++){
-    //alert(codigos[j] + " " + asistencia[j]);
-    $.post(
-      "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
-      {"codigo":codigos[j],"asistencia":asistencia[j]},
-       function(data){
-          
-      }
-    ).fail()   
-  }
-}
-
 function marcarTodosComo(){
   var valor;
   var form;
@@ -284,6 +240,7 @@ function guardar(){
 	var calificacion = [];
 	var observaciones = [];
 	var codigos = [];
+  var asistencia = [];
   var codCoord = document.getElementById("input-codigo").value;
   //alert(codCoord);
 	//bloquear();
@@ -322,7 +279,21 @@ function guardar(){
     	if(td){
     		codigos[j] = td.innerHTML;
     	}
-    	j=j+1;
+    	
+
+      //Obtener la asistencia
+      ///Aun no está probado. Solo hice un copy paste de Asistencia General.
+      td = tr[i].getElementsByTagName("td")[3];
+      if(td){
+        form = td.getElementsByTagName("form")[0];
+        if(form){
+          input = form.getElementsByTagName("input")[0];
+          if(input){
+            asistencia[j] = input.checked;
+          }
+        }
+      }
+      j=j+1;
   	}
   }
 
@@ -331,30 +302,31 @@ function guardar(){
   codigos[0] = codCoord;
   observaciones[0] = comentarioGeneral;
   calificacion[0] = "BUENO"
+  asistencia[0] = true;
   if(noGuardar){
     alert("Por favor, complete el campo de observaciones si calificó como REGULAR o MALO");
   } else {
     for(j=0;j<codigos.length;j++){
-      //alert(codigos[j] + " " + calificacion[j] + " " + observaciones[j]);
+      //alert(codigos[j] + " " + calificacion[j] + " " + observaciones[j] + " " + asistencia[j]);
       //Aquí probablemente va la función para guardar
       $.post(
           "{{ url_for(request.script_root+'.procesarJSON') }}",
-          {"codigo":codigos[j],"calificacion":calificacion[j],"observaciones":observaciones[j]},
+          {"codigo":codigos[j],"calificacion":calificacion[j],"observaciones":observaciones[j],"asistencia":asistencia[j],"option":'1'},
           function(data){
           
         }
       ).fail()
     }
 
-    guardarAsistenciaGeneral();
+    //guardarAsistenciaGeneral();
     bloquear();
-    alert("Espere por lo menos 5 segundos hasta que los datos sean guardados.")
+    alert("Espere un minuto hasta que se registre la asistencia.")
     $('#loading2').show();
     $('#btn-save').attr('disabled','disabled');
     $('#btn-edit').attr('disabled','disabled');
     $('#btn-save2').attr('disabled','disabled');
     $('#btn-edit2').attr('disabled','disabled');
-    setTimeout(myFunction, 30000)
+    setTimeout(myFunction, 10000)
   }
 }
 
@@ -571,7 +543,7 @@ $(document).ready(function() {
 
   inicializarTabla();
 
-  blockSaveEdit();
+  blockSaveEdit(1);
 
   $("#lista-table_filter").addClass("pure-form");
 
@@ -678,13 +650,6 @@ $(document).ready(function() {
 
     //Delete input and give respons
     giveResponse(input,password);
-    $.post(
-      "{{ url_for(request.script_root+'.procesarJSONAsist') }}",
-      {"codigo":input,"asistencia":"true"},
-       function(data){
-          
-      }
-    ).fail()  
     return false;
   });
 });

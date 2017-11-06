@@ -86,27 +86,27 @@ def procesarJSON():
   codigo = request.form.get('codigo', '')
   calificacion = request.form.get('calificacion', '')
   observaciones = request.form.get('observaciones', '')
+  asistencia = request.form.get('asistencia','')
+  option = request.form.get('option','')
   #print(codigo + " " + calificacion + " " +observaciones)
   controlador = personas.getControlador(codigo)
   if controlador is not None:
     #print(controlador.codigo)
-    controlador.calificacion = calificacion
-    controlador.obs_proceso = observaciones
-    db.session.commit()
-    return json.dumps(True)
-  else:
-    #print("No se encontró el Controlador")
-    return json.dumps(False)
-
-@mod_evaluacion.route("/procesarJSONObs/",methods=["POST"])
-def procesarJSONObs():
-  codigo = request.form.get('codigo', '')
-  observaciones = request.form.get('observaciones', '')
-  #print(codigo[1] + " " + calificacion[1] + " " +observaciones[1])
-  controlador = personas.getControlador(codigo)
-  if controlador is not None:
-    #print(controlador.codigo)
-    controlador.obs_capacitacion = observaciones
+    if(option == '1'):
+      controlador.calificacion = calificacion
+      controlador.obs_proceso = observaciones
+    else:
+      controlador.obs_capacitacion = observaciones
+    if(asistencia == "true"):
+      if(option == '1'):
+        controlador.hora_proceso = datetime.now().time()
+      else:
+        controlador.hora_capacitacion = datetime.now().time()
+    elif (asistencia == "false"):
+      if(option == '1'):
+        controlador.hora_proceso = None
+      else:
+        controlador.hora_capacitacion = None
     db.session.commit()
     return json.dumps(True)
   else:
@@ -225,43 +225,6 @@ def procesarJSONNuevo():
     db.session.commit()
   return json.dumps(True)
 
-@mod_evaluacion.route("/procesarJSONAsist/",methods=["POST"])
-def procesarJSONAsist():
-  codigo = request.form.get('codigo', '')
-  asistencia = request.form.get('asistencia', '')
-  controlador = personas.getControlador(codigo)
-  if controlador is not None:
-    if(asistencia == "true"):
-      controlador.hora_proceso = datetime.now().time()
-    elif (asistencia == "false"):
-      controlador.hora_proceso = None
-    db.session.commit()
-    time.sleep(1)
-    return json.dumps(True)
-  else:
-    return json.dumps(False)
-
-@mod_evaluacion.route("/procesarJSONAsistCap/",methods=["POST"])
-def procesarJSONAsistCap():
-  codigo = request.form.get('codigo', '')
-  asistencia = request.form.get('asistencia', '')
-  controlador = personas.getControlador(codigo)
-  print("Estoy aquí, mi código es:")
-  print(controlador.codigo);
-  if controlador is not None:
-    print("Se encontro controlador")
-    print(codigo + " " + asistencia)
-    if(asistencia == "true"):
-      print("Entró al true")
-      controlador.hora_capacitacion = datetime.now().time()
-    elif (asistencia == "false"):
-      controlador.hora_capacitacion = None
-    db.session.commit()
-    return json.dumps(True)
-  else:
-    #print("No se encontró el Controlador")
-    return json.dumps(False)
-
 @mod_evaluacion.route("/evaluacion/")
 def evaluacion():
   reg = funciones.getReporteControladores(1)
@@ -269,13 +232,6 @@ def evaluacion():
   apoyos = funciones.getApoyo()
   coordinadores = funciones.getCoordinadoresUltimoProceso()
   return render_template("evaluacion.tpl.html",registros = reg,asistentes = asist, apoyos = apoyos,coordinadores = coordinadores)
-
-@mod_evaluacion.route("/01X9jK6g/")
-def asistencia():
-  reg = funciones.getReporteControladores(1)
-  asist = funciones.getAsistentes()
-  apoyo = funciones.getApoyo()
-  return render_template("asistencia.tpl.html",registros = reg,asistentes = asist,apoyos = apoyo)
 
 @mod_evaluacion.route("/asistencia/")
 def asistencia2():
