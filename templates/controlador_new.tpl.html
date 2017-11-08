@@ -85,6 +85,7 @@
 
 function myFunction(){
   $('#loading2').hide();
+  alert("Controlador registrado")
 }
 
 $(document).ready(function(){
@@ -109,7 +110,6 @@ $(document).ready(function(){
         setTimeout(myFunction, 5000);
       }
     ).fail();
-    alert("Controlador registrado")
     return false;
   });
 });

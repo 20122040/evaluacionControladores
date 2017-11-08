@@ -115,7 +115,7 @@ def procesarJSON():
 
 @mod_evaluacion.route("/procesarJSONEditar/",methods=["POST"])
 def procesarJSONEditar():
-  print("Estoy aquí")
+  #print("Estoy aquí")
   codigo = request.form.get('codigo', '')
   proceso = request.form.get('proceso','')
   name = request.form.get('name', '')
@@ -128,13 +128,13 @@ def procesarJSONEditar():
   obs_proceso = request.form.get('obs_proceso','')
 
   controlador = personas.getPersonaEditar(codigo,proceso)
-  persona = funciones.getPersonaSola(codigo)
-  print(codigo + "\n" + proceso)
-  print(name + "\n" + aula)
+  person= personas.getPersonaSola(codigo)
+  #print(codigo + "\n" + proceso)
+  #print(name + "\n" + aula)
   if controlador is not None:
-    print("Encontré controlador")
-    persona.nombres = name
-    persona.correo = email
+    #print("Encontré controlador")
+    person.nombres = name
+    person.correo = email
     if(labor=="CONTROLADOR"):
       controlador.es_coord = 0
       controlador.es_apoyo = 0
@@ -151,7 +151,6 @@ def procesarJSONEditar():
       controlador.es_coord = 0
       controlador.es_apoyo = 1
       controlador.es_asistente = 0
-    #controlador.labor = request.form.get('labor','')
     controlador.aula = aula
     controlador.aula_coord = aula_coord
     controlador.cod_coord = cod_coord
@@ -170,14 +169,16 @@ def procesarJSONNuevo():
   name = request.form.get('name', '')
   email = request.form.get('email','')
 
-  nuevo_controlador = funciones.getPersonaSola(codigo);
-
+  nuevo_controlador = personas.getPersonaSola(codigo);
+  #Si ya hay un controlador en la tabla Persona con ese código
   if nuevo_controlador is not None:
+    #Se actualizan los datos
     nuevo_controlador.nombres = name;
     nuevo_controlador.email = email;
     nuevo_controlador.nro_asistencias = 0;
     nuevo_controlador.nro_convocatorias = 0;
   else:
+    #De lo contrario se crea a esa persona
     controlador = Persona(codigo,name,email,0,0)
     db.session.add(controlador)
   db.session.commit()
@@ -188,8 +189,9 @@ def procesarJSONNuevo():
   aula = request.form.get('aula','')
   aula_coord = request.form.get('aula_coord','')
   cod_coord = request.form.get('cod_coord','')
-  new_controlador = funciones.getPersonaEditar(codigo,proceso)
-  if (new_controlador is not None):
+  new_controlador = personas.getPersonaEditar(codigo,proceso)
+  #Si ya hay un controlador registrado con ese código.
+  if new_controlador is not None:
     new_controlador.aula = aula;
     new_controlador.aula_coord = aula_coord;
     new_controlador.cod_coord = cod_coord; 
@@ -210,7 +212,6 @@ def procesarJSONNuevo():
       new_controlador.es_apoyo = 1;
       new_controlador.es_asistente = 0;
     #controlador.labor = request.form.get('labor','')
-    db.session.commit()
   else:
     if(labor=="CONTROLADOR"):
       lxp = LaborPorProceso(codigo,proceso,0,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
@@ -221,8 +222,8 @@ def procesarJSONNuevo():
     elif(labor=="APOYO"): 
       lxp = LaborPorProceso(codigo,proceso,0,1,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
     #controlador.labor = request.form.get('labor','')
-    db.session.add(lxp)
-    db.session.commit()
+    db.session.add(lxp)  
+  db.session.commit()
   return json.dumps(True)
 
 @mod_evaluacion.route("/evaluacion/")
@@ -247,8 +248,8 @@ def verControlador(codigo=None):
       return render_template('Error.html', codigo=codigo)
     else:
       reg = personas.obtenerControladorPorProceso(codigo)
-      procesos = procesos.obtenerProcesosControlador(codigo)
-      return render_template('controlador_view.tpl.html',registro=reg,procesos=procesos)
+      proc = procesos.obtenerProcesosControlador(codigo)
+      return render_template('controlador_view.tpl.html',registro=reg,procesos=proc)
 
 @mod_evaluacion.route('/editarControlador/<codigo>/<idproceso>')
 def editarControlador(codigo=None,idproceso=None):
