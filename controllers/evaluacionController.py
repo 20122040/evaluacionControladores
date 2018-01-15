@@ -1,13 +1,18 @@
-from flask import Flask, request, render_template, Blueprint, redirect, url_for
 import flask_excel as excel
-import xlrd
+import json
+import time
+import os
+#import xlrd
+
+from flask import Flask, request, render_template, Blueprint, redirect, url_for
+from os import listdir
+from werkzeug.utils import secure_filename
 from models.Controlador import Persona, Proceso, LaborPorProceso
 from controllers import funciones, reportes, procesos, personas
 from datetime import datetime
 from app import db
 from sqlalchemy import or_, and_
-import json
-import time
+from app import app, ALLOWED_EXTENSIONS
 #Blueprint definition
 mod_evaluacion = Blueprint('evaluacion', __name__)
 
@@ -41,45 +46,70 @@ def reporte():
   reg = funciones.getReporteControladores()
   return render_template("reporte.tpl.html",registros = reg)
 
-@mod_evaluacion.route("/pantallaImportar")
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
 def importar2():
-  return render_template("importar.tpl.html")
+  if request.method == 'GET':
+    #solo mostrar el formulario
+    return render_template("importar.tpl.html")
+  else:
+    #Si es POST entonces se subió un archivo
+    if 'archivos' in request.files: #verificar si se selecciono archivos
+      files = request.files.to_dict(flat=False)['archivos']
+      for f in files:
+        if f and allowed_file(f.filename): #verificar que se subio xls o xlsx
+          filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
+          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
+    #Se procesan los archivos
+    folder = "uploaded_files/"
+    files = listdir(folder)
 
+    for file in files:
+      print("Leyendo: " + file + "...\n")
 
-@mod_evaluacion.route("/importar",methods=["POST"])
-def importar():
-  file = request.form.get('file', '')
-  print(file)
-  #Abrir el workbook y definir la hoja
-  book = xlrd.open_workbook(file)
-  #sheet = book.sheet_by_name("Hoja 1")
-  sheet = book.sheet_by_index(0)
-  #Crear un loop FOR para iterar en cada fila del archivo XLS empezando en la fila 2
-  for r in range(1,sheet.nrows):
-    codigo = sheet.cell(r,0).value
-    nombres = sheet.cell(r,1).value
-    correo = sheet.cell(r,2).value
-    nuevo_controlador = personas.getPersonaSola(codigo);
-    if nuevo_controlador is None:
-      print("No se encontró código")
-      controlador = Persona(codigo,nombres,correo,0,0)
-      db.session.add(controlador)
-    else:
-      print("Se encontró código")
-      nuevo_controlador.nombres = nombres
-      nuevo_controlador.correo = correo
-      nuevo_controlador.nro_convocatorias = 0
-      nuevo_controlador.nro_asistencias = 0
-    db.session.commit()
+    #Se eliminan los archivos
+    for file in files:
+      if(file[file.find("."):] in [".xls",".xlsx"]):
+        os.remove(folder + file)
+    
+    return render_template('importar.tpl.html')
 
-  print("")
-  print("All Done! Bye, for now!")
-  columns = str(sheet.ncols)
-  rows = str(sheet.nrows)
-  print("I just imported " + rows + "records to the db")
-
-  return json.dumps(True)
-
+#@mod_evaluacion.route("/importar",methods=["POST"])
+#def importar():
+#  file = request.form.get('file', '')
+#  print(file)
+#  #Abrir el workbook y definir la hoja
+#  book = xlrd.open_workbook(file)
+#  #sheet = book.sheet_by_name("Hoja 1")
+#  sheet = book.sheet_by_index(0)
+#  #Crear un loop FOR para iterar en cada fila del archivo XLS empezando en la fila 2
+#  for r in range(1,sheet.nrows):
+#    codigo = sheet.cell(r,0).value
+#    nombres = sheet.cell(r,1).value
+#    correo = sheet.cell(r,2).value
+#    nuevo_controlador = personas.getPersonaSola(codigo);
+#    if nuevo_controlador is None:
+#      print("No se encontró código")
+#      controlador = Persona(codigo,nombres,correo,0,0)
+#      db.session.add(controlador)
+#    else:
+#      print("Se encontró código")
+#      nuevo_controlador.nombres = nombres
+#      nuevo_controlador.correo = correo
+#      nuevo_controlador.nro_convocatorias = 0
+#      nuevo_controlador.nro_asistencias = 0
+#    db.session.commit()
+#
+#  print("")
+#  print("All Done! Bye, for now!")
+#  columns = str(sheet.ncols)
+#  rows = str(sheet.nrows)
+#  print("I just imported " + rows + "records to the db")
+#
+#  return json.dumps(True)
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])
 def procesarJSON():

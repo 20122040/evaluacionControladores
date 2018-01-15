@@ -1,63 +1,58 @@
 {% extends "base.tpl.html" %}
 
-{% block title %} Asistencia {% endblock %}
+{% block title %} Importar Controladores {% endblock %}
 
 {% block styles %}
 {% endblock %}
 
-{% block content%}
+{% block overlay%}
+<div class="processing-files">
+  <div class="container">
+    <p><i class="material-icons">sync</i></p>
+    <p>Se están procesando los archivos. Por favor espere, esta operación puede durar varios minutos...</p>
+  </div>
+</div>
+{% endblock %}
 
-<!doctype html>
-<title>Subir un archivo Excel</title>
-<h1>Subir un archivo Excel (En formato xls)</h1>
-<div class="loader" id="loading2" style="display: none; position: center;"></div>
-<form class="pure-form" action="" method=post enctype=multipart/form-data id="form-import"><p>
-<input class="" type=file name=file id="file">
-<br>
-<br>
-<button class="pure-button pure-button-primary" type=submit>Cargar</button>
+{% block content %}
+<div class="botones-cabecera" style="display: flex;">
+  <div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Regresar a Reporte</a>
+  </div>
+</div>
+
+<h2>Subir Archivo</h2>
+<form id="file-form" method="post" enctype="multipart/form-data">
+  <input type="file" name="archivos" multiple="multiple" accept=".xls,.xlsx">
+  <button type="submit"><span> ENVIAR</span></button>
 </form>
-
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='js/xlsx.full.min.js') }}" type="text/javascript"></script>
+<script type="text/javascript">
 
-<script>
+document.querySelector('#file-form input[type="file"]').addEventListener('change',e =>{
+  e.preventDefault();
+  e.stopPropagation();
+  const files = e.target.files;
+  if(files.length == 0){
+    dragIdle.classList.remove('invisible');
+  }
+  dragOver.classList.add('invisible');
+  dragIdle.classList.add('invisible');
+  drop.classList.remove('invisible');
+  let table = document.querySelector('#filedrag .drop tbody');
+  if(files.length != 0){
+    table.innerHTML = "";
+  }
+  Array.from(files).forEach(f => {
+    table.innerHTML += `<tr><td>${f.name}</td><td>${f.size}</td></tr>`;
+  });
+});
 
+document.querySelector('#file-form').addEventListener('submit',e=>{
+  document.querySelector('.processing-files').classList.add('active');
+});
 
-
-function myFunction(){
-  $('#loading2').hide();
-}
-
-
-
-$(document).ready(function() {
-var url = "prueba2.xls";
-var oReq = new XMLHttpRequest();
-oReq.open("GET",url,true);
-oReq.responseType = "arraybuffer";
-
-oReq.onload = function(e){
-  var arraybuffer = oReq.response;
-
-  var data = new Uint8Array(arraybuffer);
-  var arr = new Array();
-  for(var i=0;i!=data.length;++i) arr[i] = String.fromCharCode(data[i]);
-  var bstr = arr.join("");
-
-  var workbook = XLSX.read(bstr,(type:"binary"));
-
-  var first_sheet_name = workbook.SheetNames[0];
-
-  var worksheet = workbook.Sheets[first_sheet_name];
-
-  console.log(XLS.utils.sheet_to_json(worksheet));
-}
-
-
-})
-</script>
+</script> 
 {% endblock %}
