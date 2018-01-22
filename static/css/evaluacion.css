@@ -19,6 +19,13 @@ body{
   font-size: 15px !important;
 }
 
+.message{
+  background-color: #fdff79;
+  padding: 1px 2em;
+  margin: 0.5em;
+  margin-bottom: 0;
+}
+
 .button-success,
 .button-error,
 .button-warning,

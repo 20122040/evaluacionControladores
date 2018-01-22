@@ -76,10 +76,11 @@ class LaborPorProceso(db.Model):
   calificacion = db.Column(db.String(10))
   obs_proceso = db.Column(db.String(255))
   obs_capacitacion = db.Column(db.String(255))
+  obs_coordinacion = db.Column(db.String(255))
   password = db.Column(db.String(255))
 
   def __init__(self,codigo,idproceso,es_coord,es_apoyo,es_asistente,aula,aula_coord,aula_capacitacion,fecha_proceso,
-              fecha_capacitacion,hora_proceso,hora_capacitacion,cod_coord,calificacion,obs_proceso,obs_capacitacion,password):
+              fecha_capacitacion,hora_proceso,hora_capacitacion,cod_coord,calificacion,obs_proceso,obs_capacitacion,obs_coordinacion,password):
     self.codigo = codigo
     self.idproceso = idproceso
     self.es_coord = es_coord
@@ -96,6 +97,7 @@ class LaborPorProceso(db.Model):
     self.calificacion = calificacion
     self.obs_proceso = obs_proceso
     self.obs_capacitacion = obs_capacitacion
+    self.obs_coordinacion = obs_coordinacion
     self.password = password
 
   def __repr__(self):
@@ -119,6 +121,7 @@ class LaborPorProceso(db.Model):
     result["calificacion"] = self.calificacion
     result["obs_proceso"] = self.obs_proceso
     result["obs_capacitacion"] = self.obs_capacitacion
+    result["obs_coordinacion"] = self.obs_coordinacion
     result["password"] = self.password
     if rel_level > 0:
       result["persona"] = self.persona.getAsDict(rel_level-1)

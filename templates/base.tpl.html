@@ -24,12 +24,13 @@
     <img class="pure-img" id="logo" src="{{ url_for('static', filename='img/logo-pucp.png') }}">
     <p class="titulo" style="">Sistema de asistencia y evaluación de controladores</p>
   </div>
-  <div id="layout" class="pure-g">
-    {% for message in messages %}
-      <div class="message pure-u-1 pure-u-md-5-5">
-      <p>{{ message }}</p>
+
+  {% for message in messages %}
+      <div class="message">
+      <p>{{ message | safe }}</p>
       </div>
-    {% endfor %}
+  {% endfor %}
+  <div id="layout" class="pure-g">    
     <div class="content pure-u-1 pure-u-md-5-5">
     {% block content%}
     {% endblock %}

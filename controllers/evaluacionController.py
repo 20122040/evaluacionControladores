@@ -2,13 +2,16 @@ import flask_excel as excel
 import json
 import time
 import os
+import xlsxwriter
+import pandas as pd
 #import xlrd
 
 from flask import Flask, request, render_template, Blueprint, redirect, url_for
 from os import listdir
+from os.path import isfile, join
 from werkzeug.utils import secure_filename
 from models.Controlador import Persona, Proceso, LaborPorProceso
-from controllers import funciones, reportes, procesos, personas
+from controllers import funciones, reportes, procesos, personas, importar
 from datetime import datetime
 from app import db
 from sqlalchemy import or_, and_
@@ -50,33 +53,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
-def importar2():
-  if request.method == 'GET':
-    #solo mostrar el formulario
-    return render_template("importar.tpl.html")
-  else:
-    #Si es POST entonces se subió un archivo
-    if 'archivos' in request.files: #verificar si se selecciono archivos
-      files = request.files.to_dict(flat=False)['archivos']
-      for f in files:
-        if f and allowed_file(f.filename): #verificar que se subio xls o xlsx
-          filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
-          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
-    #Se procesan los archivos
-    folder = "uploaded_files/"
-    files = listdir(folder)
-
-    for file in files:
-      print("Leyendo: " + file + "...\n")
-
-    #Se eliminan los archivos
-    for file in files:
-      if(file[file.find("."):] in [".xls",".xlsx"]):
-        os.remove(folder + file)
-    
-    return render_template('importar.tpl.html')
-
 #@mod_evaluacion.route("/importar",methods=["POST"])
 #def importar():
 #  file = request.form.get('file', '')
@@ -110,6 +86,111 @@ def importar2():
 #  print("I just imported " + rows + "records to the db")
 #
 #  return json.dumps(True)
+
+
+def añadirBD(arch_name):
+  folder = "downloaded_files/"
+  files = listdir(folder)
+
+  for file in files:
+    print("Leyendo: " + folder + file + "...\n")
+    controladores_data = pd.read_excel(folder + file,'PARA EXPORTAR')
+    #print(controladores_data)
+    row = 1
+    #Primero hacemos un import en la tabla personas
+    for codigo in controladores_data['Código']:
+      #coordinadores_data['AULA DE COORDINACIÓN'][row-1]
+      #worksheet.write(row,1,str(cod).zfill(8))
+      #row+=1
+      nombres = controladores_data['Apellido Paterno'][row-1] + " " + controladores_data['Apellido Materno'][row-1] + ", " + controladores_data['Nombres'][row-1] 
+      nuevo_controlador = personas.getPersonaSola(codigo);
+      if nuevo_controlador is None:
+        print("No se encontró código")
+        controlador = Persona(str(codigo).zfill(8),nombres,'',0,0)
+        db.session.add(controlador)
+      else:
+        print("Se encontró código")
+        nuevo_controlador.nombres = nombres
+      db.session.commit()
+      #Agregando Labor_Por_Proceso
+      proceso = procesos.getUltimoProceso()
+      es_coord = controladores_data['Es coordinador'][row-1]
+      es_apoyo = controladores_data['Apoyo OCAI'][row-1]
+      es_asistente = controladores_data['Asistente OCAI'][row-1]  
+      aula = controladores_data['Aula'][row-1]
+      aula_coord = controladores_data['Aula coordinación'][row-1]
+      cod_coord = controladores_data['codigo Coordinador'][row-1]
+      new_controlador = personas.getPersonaEditar(codigo,proceso.idproceso)
+      #Si ya hay un controlador registrado con ese código en ese proceso
+      if new_controlador is not None:
+        new_controlador.aula = aula
+        new_controlador.aula_coord = aula_coord
+        new_controlador.cod_coord = str(cod_coord).zfill(8)
+        new_controlador.es_coord = 0 if es_coord == 'FALSO' else 1
+        new_controlador.es_apoyo = 0 if es_apoyo == 'FALSO' else 1
+        new_controlador.es_asistente = 0 if es_asistente == 'FALSO' else 1
+      else:
+        lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0 if es_coord == 'FALSO' else 1,0 if es_apoyo == 'FALSO' else 1,0 if es_asistente == 'FALSO' else 1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,str(cod_coord).zfill(8),'0','','','')
+        db.session.add(lxp)  
+      db.session.commit()
+      row = row + 1
+
+  os.remove('downloaded_files/' + arch_name)
+
+@mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
+def importar2():
+  if request.method == 'GET':
+    #solo mostrar el formulario
+    errores = ['Descarga el formato de la base, <a href="/static/formato/'+ 'FORMATO LISTA CONTROLADORES Y COORDINADORES.xlsx' +'">Descargar el formato</a>']
+    return render_template("importar.tpl.html",messages=errores)
+  else:
+    #Si es POST entonces se subió un archivo
+    if 'archivos' in request.files: #verificar si se selecciono archivos
+      files = request.files.to_dict(flat=False)['archivos']
+      for f in files:
+        if f and allowed_file(f.filename): #verificar que se subio xls o xlsx
+          filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
+          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
+    #Se procesan los archivos
+    folder = "uploaded_files/"
+    files = listdir(folder)
+
+    proceso = procesos.getUltimoProceso()
+    arch_name = 'Base para access ' + proceso.nombre + '.xlsx'
+    arch_name.replace(' ','_')
+    os.remove('static/bases/' + arch_name)
+    writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
+    writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
+
+    for file in files:
+      print("Leyendo: " + folder + file + "...\n")
+      coordinadores_data = pd.read_excel(folder + file,'COORDINADORES')
+      #print(coordinadores_data)
+      controladores_data = pd.read_excel(folder + file,'CONTROLADORES')
+      importar.writeToCoordinadores(writer,coordinadores_data)
+      importar.writeToControladores(writer,controladores_data)
+      importar.writeToCoordinadores(writer2,coordinadores_data)
+      importar.writeToControladores(writer2,controladores_data)
+      worksheet = writer.add_worksheet('AULAS')
+      worksheet = writer2.add_worksheet('AULAS')
+      importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data)
+      importar.writeToBaseParaExportar(writer2,coordinadores_data,controladores_data)
+      
+    writer.close()
+    writer2.close()
+
+    #Se eliminan los archivos
+    for file in files:
+      if(file[file.find("."):] in [".xls",".xlsx"]):
+        os.remove(folder + file)
+    errores = ['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>']
+  
+    añadirBD(arch_name)
+
+  
+    #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>']
+    
+    return render_template('importar.tpl.html',messages=errores)
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])
 def procesarJSON():
@@ -293,3 +374,8 @@ def editarControlador(codigo=None,idproceso=None):
 def nuevoControlador():
   pro = procesos.obtenerProcesos()
   return render_template('controlador_new.tpl.html',procesos=pro)
+
+@mod_evaluacion.route('/nuevoProceso/')
+def nuevoProceso():
+  pro = procesos.obtenerProcesos()
+  return render_template('proceso_new.tpl.html',procesos=pro)
