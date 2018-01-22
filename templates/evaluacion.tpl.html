@@ -103,7 +103,7 @@
 <table id="lista-table" class="pure-table pure-table-bordered" style="display: none; width:100%">
   <div class="loader" id="loading2" style="display: none;"></div>
   <thead>
-    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Aula</th><th id="table-arrow">Asistencia</th><th id="table-arrow">Calificación</th><th>Observaciones</th><th id = "cabecera_fecha" style="display: none;">Fecha del Proceso</th><th style="display:none;">Codigo Coordinador</th></tr>
+    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Aula</th><th id="table-arrow">Asistencia</th><th id="table-arrow">Calificación</th><th>Observaciones</th><th id = "cabecera_fecha" style="display: none;">Fecha del Proceso</th><th style="display:none;">Codigo Coordinador</th><th style="display: none;">Observación de Coordinación</th></tr>
   </thead>
   <tbody>
     {% for reg in registros %}
@@ -140,6 +140,7 @@
       	</td>
       	<td class="fecha-proceso" style="display: none;">{{ reg.fecha_proceso }}</td>
         <td style="display:none;">{{ reg.cod_coord }}</td>
+        <td style="display:none;">{{ reg.obs_coordinacion }}</td>
 	    </tr>
     {% endfor %}
   </tbody>
@@ -239,13 +240,14 @@ function guardar(){
 	var j=0;
 	var calificacion = [];
 	var observaciones = [];
+  var observacionesCoordinacion = [];
 	var codigos = [];
   var asistencia = [];
   var codCoord = document.getElementById("input-codigo").value;
   //alert(codCoord);
 	//bloquear();
   var comentarioGeneral = document.getElementById("comentario-general").value;
-  //alert(codCoord + " " +comentarioGeneral);
+  //alert(comentarioGeneral);
 	table = document.getElementById("lista-table");
   tr = table.getElementsByTagName("tr");
   // Loop through all table rows, and hide those who don't match the search query
@@ -279,8 +281,9 @@ function guardar(){
     	if(td){
     		codigos[j] = td.innerHTML;
     	}
-    	
-
+      //Para obtener las observaciones por coordinación
+      observacionesCoordinacion[j] = comentarioGeneral;
+         
       //Obtener la asistencia
       ///Aun no está probado. Solo hice un copy paste de Asistencia General.
       td = tr[i].getElementsByTagName("td")[3];
@@ -300,7 +303,7 @@ function guardar(){
   noGuardar = faltaObservaciones();
   
   codigos[0] = codCoord;
-  observaciones[0] = comentarioGeneral;
+  observacionesCoordinacion[0] = comentarioGeneral;
   calificacion[0] = "BUENO"
   asistencia[0] = true;
   if(noGuardar){
@@ -311,7 +314,7 @@ function guardar(){
       //Aquí probablemente va la función para guardar
       $.post(
           "{{ url_for(request.script_root+'.procesarJSON') }}",
-          {"codigo":codigos[j],"calificacion":calificacion[j],"observaciones":observaciones[j],"asistencia":asistencia[j],"option":'1'},
+          {"codigo":codigos[j],"calificacion":calificacion[j],"observaciones":observaciones[j],"observacionesCoordinacion":observacionesCoordinacion[j],"asistencia":asistencia[j],"option":'1'},
           function(data){
           
         }
@@ -505,28 +508,16 @@ function inicializarTabla(){
         tr[i].style.fontWeight = "bold"; 
       }
       codCoord = document.getElementById("input-codigo").value;
-      if((p3 == 1)&&(p2 == 0)&&(p1 == 0)){
-        td1 = tr[i].getElementsByTagName("td")[1];
-        if(td1){
-          codigo = td1.innerHTML;
-          if(codigo == codCoord){
-            td5 = tr[i].getElementsByTagName("td")[5];
-            if(td5){
-              form = td5.getElementsByTagName("form")[0];
-              if(form){
-                textarea = form.getElementsByTagName("textarea")[0];
-                if(textarea){
-                  com = textarea.innerHTML;
-                  document.getElementById("comentario-general").innerHTML = com;
-                }
-              }
-            }
-          }
+      td1 = tr[i].getElementsByTagName("td")[8];
+      if(td1){
+        td2 = tr[i].getElementsByTagName("td")[7];
+        if(codCoord == td2.innerHTML){
+          com = td1.innerHTML;
+          document.getElementById("comentario-general").innerHTML = com;
         }
       }
     } 
   }
-  
 }
 
 $(document).ready(function() {
@@ -594,23 +585,12 @@ $(document).ready(function() {
           tr[i].style.fontWeight = "bold"; 
         }
         codCoord = document.getElementById("input-codigo").value;
-        if((p3 == 1)&&(p2 == 0)&&(p1 == 0)){
-          td1 = tr[i].getElementsByTagName("td")[1];
-          if(td1){
-            codigo = td1.innerHTML;
-            if(codigo == codCoord){
-              td5 = tr[i].getElementsByTagName("td")[5];
-              if(td5){
-                form = td5.getElementsByTagName("form")[0];
-                if(form){
-                  textarea = form.getElementsByTagName("textarea")[0];
-                  if(textarea){
-                    com = textarea.innerHTML;
-                    document.getElementById("comentario-general").innerHTML = com;
-                  }
-                }
-              }
-            }
+        td1 = tr[i].getElementsByTagName("td")[8];
+        if(td1){
+          td2 = tr[i].getElementsByTagName("td")[7];
+          if(codCoord == td2.innerHTML){
+            com = td1.innerHTML;
+            document.getElementById("comentario-general").innerHTML = com;
           }
         }
       } 

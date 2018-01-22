@@ -20,6 +20,9 @@ def obtenerProcesos():
     )
   return query
 
+def getCantidadProcesos():
+  return Proceso.query.count()
+
 def getUltimoProceso():
   query = Proceso.query.filter_by(es_ultimo=1).first()
   return query

@@ -78,6 +78,7 @@ def getReporteControladores(opt=0):
       LaborPorProceso.es_coord,
       LaborPorProceso.es_apoyo,
       LaborPorProceso.es_asistente,
+      LaborPorProceso.obs_coordinacion,
     ))
   if(opt==0):
     joinQuery = joinQuery.filter(
@@ -128,3 +129,12 @@ def getApoyo():
       )
   )
   return joinQuery
+
+def getAllWorkers():
+  return Persona.query.add_columns(
+      Persona.codigo,
+      Persona.nombres,
+      Persona.correo,
+      Persona.nro_convocatorias,
+      Persona.nro_asistencias,
+    )

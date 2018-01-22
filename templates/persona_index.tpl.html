@@ -1,0 +1,77 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+#lista-table_filter{
+  margin-top:1em;
+  margin-bottom:1em;
+}
+#lista-table_paging{
+  color:red;
+}
+</style>
+{% endblock %}
+
+{% block content%}
+<!--agregar aqui el html -->
+<div class="botones-cabecera" style="display: flex;">
+  <div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" href="/administrador/">Principal</a>
+  </div>
+</div>
+<h2>Personas</h2>
+
+<table id="lista-table" class="pure-table pure-table-bordered" style="width:100%">
+  <thead>
+    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Correo</th><th id="table-arrow"># Proceso a los que fue convocado</th><th id="table-arrow"># Procesos a los que asistió</th><th>Acciones</th></tr>
+  <thead>
+  <tbody>
+    {% for reg in registros %}
+	    <tr class="registro">
+	    	<td>{{ reg.nombres }}</td>
+	    	<td>{{ reg.codigo }}</td>
+	    	<td>{{ reg.correo }}</td>
+	    	<td>{{ reg.nro_convocatorias }}</td>
+	    	<td>{{ reg.nro_asistencias }}</td>
+	    	<td>
+	          <div style="display: flex;">
+	            <a class="pure-button" href="/verControlador/{{ reg.codigo }}">
+	              <i class="fa fa-eye" style="color: green;"></i>
+	            </a> 
+	            <a class="pure-button" href="/editarPersona/{{ reg.codigo }}">
+	              <i class="fa fa-pencil" style="color:blue;"></i>
+	            </a> 
+          	  </div>
+        	</td>
+	    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+//es recomendable usar un script externo
+//jQuery esta incluido en base.tpl.html
+$(document).ready(function() {
+  $("#lista-table").DataTable({
+    "paging": true,
+    "info":false,
+        "language":{
+          "search": "Buscar: ",
+          "Show ": "Mostrar ",
+          "entries": "registros",
+          "Previous": "Anterior",
+          "Next": "Siguiente"
+        }
+  });
+
+  $("#lista-table_filter").addClass("pure-form");
+});
+</script>
+{% endblock %}

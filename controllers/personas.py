@@ -16,6 +16,12 @@ def getPersonaSola(codigo):
   query = Persona.query.filter_by(codigo=codigo).first()
   return query
 
+def getCantidadPersonas():
+  return Persona.query.count()
+
+def getCantidadControladores():
+  return LaborPorProceso.query.count()
+
 def getPersonaEditar(codigo,proceso):
   joinQuery = LaborPorProceso.query.join(Proceso,LaborPorProceso.idproceso==Proceso.idproceso)
   joinQuery = joinQuery.filter(

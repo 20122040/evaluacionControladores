@@ -53,41 +53,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-#@mod_evaluacion.route("/importar",methods=["POST"])
-#def importar():
-#  file = request.form.get('file', '')
-#  print(file)
-#  #Abrir el workbook y definir la hoja
-#  book = xlrd.open_workbook(file)
-#  #sheet = book.sheet_by_name("Hoja 1")
-#  sheet = book.sheet_by_index(0)
-#  #Crear un loop FOR para iterar en cada fila del archivo XLS empezando en la fila 2
-#  for r in range(1,sheet.nrows):
-#    codigo = sheet.cell(r,0).value
-#    nombres = sheet.cell(r,1).value
-#    correo = sheet.cell(r,2).value
-#    nuevo_controlador = personas.getPersonaSola(codigo);
-#    if nuevo_controlador is None:
-#      print("No se encontró código")
-#      controlador = Persona(codigo,nombres,correo,0,0)
-#      db.session.add(controlador)
-#    else:
-#      print("Se encontró código")
-#      nuevo_controlador.nombres = nombres
-#      nuevo_controlador.correo = correo
-#      nuevo_controlador.nro_convocatorias = 0
-#      nuevo_controlador.nro_asistencias = 0
-#    db.session.commit()
-#
-#  print("")
-#  print("All Done! Bye, for now!")
-#  columns = str(sheet.ncols)
-#  rows = str(sheet.nrows)
-#  print("I just imported " + rows + "records to the db")
-#
-#  return json.dumps(True)
-
-
 def añadirBD(arch_name):
   folder = "downloaded_files/"
   files = listdir(folder)
@@ -99,9 +64,6 @@ def añadirBD(arch_name):
     row = 1
     #Primero hacemos un import en la tabla personas
     for codigo in controladores_data['Código']:
-      #coordinadores_data['AULA DE COORDINACIÓN'][row-1]
-      #worksheet.write(row,1,str(cod).zfill(8))
-      #row+=1
       nombres = controladores_data['Apellido Paterno'][row-1] + " " + controladores_data['Apellido Materno'][row-1] + ", " + controladores_data['Nombres'][row-1] 
       nuevo_controlador = personas.getPersonaSola(codigo);
       if nuevo_controlador is None:
@@ -130,7 +92,7 @@ def añadirBD(arch_name):
         new_controlador.es_apoyo = 0 if es_apoyo == 'FALSO' else 1
         new_controlador.es_asistente = 0 if es_asistente == 'FALSO' else 1
       else:
-        lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0 if es_coord == 'FALSO' else 1,0 if es_apoyo == 'FALSO' else 1,0 if es_asistente == 'FALSO' else 1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,str(cod_coord).zfill(8),'0','','','')
+        lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0 if es_coord == 'FALSO' else 1,0 if es_apoyo == 'FALSO' else 1,0 if es_asistente == 'FALSO' else 1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,str(cod_coord).zfill(8),'0','','','','')
         db.session.add(lxp)  
       db.session.commit()
       row = row + 1
@@ -158,7 +120,10 @@ def importar2():
     proceso = procesos.getUltimoProceso()
     arch_name = 'Base para access ' + proceso.nombre + '.xlsx'
     arch_name.replace(' ','_')
-    os.remove('static/bases/' + arch_name)
+    folder_base = "static/bases/"
+    files_base = listdir(folder_base)
+    if(len(files_base)!=0):
+      os.remove('static/bases/' + arch_name)
     writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
     writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
@@ -197,6 +162,7 @@ def procesarJSON():
   codigo = request.form.get('codigo', '')
   calificacion = request.form.get('calificacion', '')
   observaciones = request.form.get('observaciones', '')
+  observacionesCoordinacion = request.form.get('observacionesCoordinacion','')
   asistencia = request.form.get('asistencia','')
   option = request.form.get('option','')
   #print(codigo + " " + calificacion + " " +observaciones)
@@ -206,6 +172,7 @@ def procesarJSON():
     if(option == '1'):
       controlador.calificacion = calificacion
       controlador.obs_proceso = observaciones
+      controlador.obs_coordinacion = observacionesCoordinacion
     else:
       controlador.obs_capacitacion = observaciones
     if(asistencia == "true"):
@@ -273,6 +240,22 @@ def procesarJSONEditar():
     print("No se encontró el Controlador")
     return json.dumps(False)
 
+@mod_evaluacion.route("/procesarJSONEditarPersona/",methods=["POST"])
+def procesarJSONEditarPersona():
+  codigo = request.form.get('codigo', '')
+  name = request.form.get('name', '')
+  email = request.form.get('email','')
+
+  person= personas.getPersonaSola(codigo)
+  if person is not None:
+    person.nombres = name
+    person.correo = email
+    db.session.commit()
+    return json.dumps(True)
+  else:
+    print("No se encontró el Controlador")
+    return json.dumps(False)
+
 @mod_evaluacion.route("/procesarJSONNuevo/",methods=["POST"])
 def procesarJSONNuevo():
   #Agregando Persona
@@ -325,13 +308,13 @@ def procesarJSONNuevo():
     #controlador.labor = request.form.get('labor','')
   else:
     if(labor=="CONTROLADOR"):
-      lxp = LaborPorProceso(codigo,proceso,0,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+      lxp = LaborPorProceso(codigo,proceso,0,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','','')
     elif(labor=="COORDINADOR"):
-      lxp = LaborPorProceso(codigo,proceso,1,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+      lxp = LaborPorProceso(codigo,proceso,1,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','','')
     elif(labor=="ASISTENTE"):
-      lxp = LaborPorProceso(codigo,proceso,0,0,1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+      lxp = LaborPorProceso(codigo,proceso,0,0,1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','','')
     elif(labor=="APOYO"): 
-      lxp = LaborPorProceso(codigo,proceso,0,1,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','')
+      lxp = LaborPorProceso(codigo,proceso,0,1,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,cod_coord,'0','','','','')
     #controlador.labor = request.form.get('labor','')
     db.session.add(lxp)  
   db.session.commit()
@@ -379,3 +362,20 @@ def nuevoControlador():
 def nuevoProceso():
   pro = procesos.obtenerProcesos()
   return render_template('proceso_new.tpl.html',procesos=pro)
+
+@mod_evaluacion.route('/administrador/')
+def administrador():
+  cantPersonas = personas.getCantidadPersonas()
+  cantProcesos = procesos.getCantidadProcesos()
+  cantControladores = personas.getCantidadControladores()
+  return render_template('administrador.tpl.html',nPer=cantPersonas,nProc=cantProcesos,nCont=cantControladores)
+
+@mod_evaluacion.route('/persona/')
+def persona():
+  reg = funciones.getAllWorkers()
+  return render_template('persona_index.tpl.html',registros=reg)
+
+@mod_evaluacion.route('/editarPersona/<codigo>')
+def editarPersona(codigo=None):
+  reg = personas.getPersonaSola(codigo)
+  return render_template('persona_edit.tpl.html',registro=reg)

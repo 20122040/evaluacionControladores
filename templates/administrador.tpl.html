@@ -1,0 +1,70 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+#lista-table_filter{
+  margin-top:1em;
+  margin-bottom:1em;
+}
+#lista-table_paging{
+  color:red;
+}
+</style>
+{% endblock %}
+
+{% block content%}
+<!--agregar aqui el html -->
+<div class="botones-cabecera" style="display: flex;">
+  <div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de Examen</a>
+    <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
+  </div>
+</div>
+<h2>Vista de Administrador</h2>
+<div class="row dashboard-wrapper">
+	<div class="dashboard-card-wrapper">
+		<a class="card-text-link" href="/persona"> 
+			<div class="card is-card-square">
+	          <div class="same-row-items">
+	            <img src="/static/img/manager.svg" class="menu-icon">
+	            <p class="number-data" id="number">{{ nPer }}</p>
+	          </div>
+	            <div class="same-row-items">
+	              <p class="card-name">Personas</p>
+	            </div>
+	        </div>
+		</a>
+		<a class="card-text-link" href=""> 
+			<div class="card is-card-square">
+	          <div class="same-row-items">
+	            <img src="/static/img/rectangles.svg" class="menu-icon">
+	            <p class="number-data" id="number">{{ nProc }}</p>
+	          </div>
+	            <div class="same-row-items">
+	              <p class="card-name">Procesos</p>
+	            </div>
+	        </div>
+		</a>
+			<a class="card-text-link" href="/reporte"> 
+			<div class="card is-card-square">
+	          <div class="same-row-items">
+	            <img src="/static/img/newspaper.svg" class="menu-icon">
+	            <p class="number-data" id="number">{{ nCont }}</p>
+	          </div>
+	            <div class="same-row-items">
+	              <p class="card-name">Reporte</p>
+	            </div>
+	        </div>
+		</a>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+</script>
+{% endblock %}

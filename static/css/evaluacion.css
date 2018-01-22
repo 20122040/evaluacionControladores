@@ -15,6 +15,69 @@ body{
   background: rgba(43,43,41,1);
 }
 
+.row{
+  margin-right: -10px;
+  margin-left: -10px;
+}
+
+.dashboard-wrapper {
+  justify-content: space-around;
+}
+
+.dashboard-card-wrapper {
+  margin: 10px 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.card-text-link {
+  color: black;
+}
+
+.card{
+  border-radius: 1em;
+  border-color: black;
+  border-style: solid;
+  margin: 10px 0;
+  box-shadow: 0 25px 30px -13px rgba(40, 40, 40, 0.4);
+  padding-top: 0;
+}
+
+.is-card-square {
+  width: 15em;
+  height: 15em;
+  margin: auto;
+}
+
+.same-row-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-name {
+  font-weight: bold;
+  vertical-align: middle;
+  text-align:center;
+  display: table-cell; 
+  margin-bottom: auto;
+  margin-top: auto;
+}
+
+.number-data {
+  font-weight: bold;
+  margin: auto;
+  margin-left: 10%;
+  text-align: left;
+  font-size: 55px;
+}
+
+.menu-icon {
+  width: 100px;
+  margin-left: 15px;
+  margin-top: 5px;
+}
+
 .pure-table{
   font-size: 15px !important;
 }
@@ -196,6 +259,11 @@ textarea{
 .pure-img{
   margin-left: auto;
   margin-right: auto;
+}
+
+#logo{
+  height:5em;
+  margin-top: 1em;
 }
 
 h1{
