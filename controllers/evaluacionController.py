@@ -53,35 +53,49 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def añadirBD(arch_name):
+def getCorreo(codigo,controladores_data,coordinadores_data):
+  correo = controladores_data["Correo electrónico"].loc[(controladores_data["Código"]==codigo)].max()
+  if correo is None:
+    correo2 = coordinadores_data["Correo electrónico"].loc[(coordinadores_data["Código"]==codigo)].max()
+    if correo2 is None:
+      return "No hay correo"
+    else:
+      return str(correo2)
+  else:
+    return str(correo) 
+
+
+def añadirBD(arch_name,controladores_data,coordinadores_data):
   folder = "downloaded_files/"
   files = listdir(folder)
 
   for file in files:
     print("Leyendo: " + folder + file + "...\n")
-    controladores_data = pd.read_excel(folder + file,'PARA EXPORTAR')
+    personas_data = pd.read_excel(folder + file,'PARA EXPORTAR')
     #print(controladores_data)
     row = 1
     #Primero hacemos un import en la tabla personas
-    for codigo in controladores_data['Código']:
-      nombres = controladores_data['Apellido Paterno'][row-1] + " " + controladores_data['Apellido Materno'][row-1] + ", " + controladores_data['Nombres'][row-1] 
+    for codigo in personas_data['Código']:
+      nombres = personas_data['Apellido Paterno'][row-1] + " " + personas_data['Apellido Materno'][row-1] + ", " + personas_data['Nombres'][row-1] 
+      correo = getCorreo(codigo,controladores_data,coordinadores_data)
       nuevo_controlador = personas.getPersonaSola(codigo);
       if nuevo_controlador is None:
         print("No se encontró código")
-        controlador = Persona(str(codigo).zfill(8),nombres,'',0,0)
+        controlador = Persona(str(codigo).zfill(8),nombres,correo,0,0)
         db.session.add(controlador)
       else:
         print("Se encontró código")
         nuevo_controlador.nombres = nombres
+        nuevo_controlador.correo = correo
       db.session.commit()
       #Agregando Labor_Por_Proceso
       proceso = procesos.getUltimoProceso()
-      es_coord = controladores_data['Es coordinador'][row-1]
-      es_apoyo = controladores_data['Apoyo OCAI'][row-1]
-      es_asistente = controladores_data['Asistente OCAI'][row-1]  
-      aula = controladores_data['Aula'][row-1]
-      aula_coord = controladores_data['Aula coordinación'][row-1]
-      cod_coord = controladores_data['codigo Coordinador'][row-1]
+      es_coord = personas_data['Es coordinador'][row-1]
+      es_apoyo = personas_data['Apoyo OCAI'][row-1]
+      es_asistente = personas_data['Asistente OCAI'][row-1]  
+      aula = personas_data['Aula'][row-1]
+      aula_coord = personas_data['Aula coordinación'][row-1]
+      cod_coord = personas_data['codigo Coordinador'][row-1]
       new_controlador = personas.getPersonaEditar(codigo,proceso.idproceso)
       #Si ya hay un controlador registrado con ese código en ese proceso
       if new_controlador is not None:
@@ -96,7 +110,6 @@ def añadirBD(arch_name):
         db.session.add(lxp)  
       db.session.commit()
       row = row + 1
-
   os.remove('downloaded_files/' + arch_name)
 
 @mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
@@ -150,7 +163,7 @@ def importar2():
         os.remove(folder + file)
     errores = ['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>']
   
-    añadirBD(arch_name)
+    añadirBD(arch_name,controladores_data,coordinadores_data)
 
   
     #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>']
