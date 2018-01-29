@@ -20,29 +20,39 @@
   <div class="pure-u-1">
     <a class="pure-button" style="margin-top:5px;" href="/administrador/">Principal</a>
   </div>
+  <div class="pure-u-1 right">
+    <a class="button-success pure-button" href="/nuevoProceso/">Nuevo Proceso <i class="fa fa-plus-square" style="color: green;"></i></a>
+  </div>
 </div>
-<h2>Personas</h2>
+
+<h2>Procesos</h2>
 
 <table id="lista-table" class="pure-table pure-table-bordered" style="width:100%">
   <thead>
-    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Correo</th><th id="table-arrow"># Proceso a los que fue convocado</th><th id="table-arrow"># Procesos a los que asistió</th><th id="table-arrow">Acciones</th></tr>
+    <tr><th id="table-arrow">#</th><th id="table-arrow">Nombre del Proceso</th><th id="table-arrow">Fecha del Proceso</th><th id="table-arrow">Fecha de la Capacitación</th><th id="table-arrow">¿Es último proceso?</th><th id="table-arrow">Acciones</th></tr>
   <thead>
   <tbody>
     {% for reg in registros %}
 	    <tr class="registro">
-	    	<td>{{ reg.nombres }}</td>
-	    	<td>{{ reg.codigo }}</td>
-	    	<td>{{ reg.correo }}</td>
-	    	<td>{{ reg.nro_convocatorias }}</td>
-	    	<td>{{ reg.nro_asistencias }}</td>
+	    	<td>{{ reg.idproceso }}</td>
+	    	<td>{{ reg.nombre }}</td>
+	    	<td>{{ reg.fecha }}</td>
+	    	<td>{{ reg.fecha_cap }}</td>
+	    	<td>
+          {% if reg.es_ultimo != 1 %}
+            <i class="fa fa-times" id="falto" style="color:red;"></i>
+          {% else %}
+            <i class="fa fa-check" id="asistio" style="color:green;"></i>
+          {% endif %}  
+        </td>
 	    	<td>
 	          <div style="display: flex;">
-	            <a class="pure-button" href="/verPersona/{{ reg.codigo }}">
-	              <i class="fa fa-eye" style="color: green;"></i>
-	            </a> 
-	            <a class="pure-button" href="/editarPersona/{{ reg.codigo }}">
+	            <a class="pure-button" href="/editarProceso/{{ reg.idproceso }}">
 	              <i class="fa fa-pencil" style="color:blue;"></i>
-	            </a> 
+	            </a>
+              <a class="pure-button" href="/eliminarProceso/{{ reg.idproceso }}">
+                <i class="fa fa-trash" style="color:red;"></i>
+              </a>  
           	  </div>
         	</td>
 	    </tr>

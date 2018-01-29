@@ -20,9 +20,6 @@
     <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de examen</a>
   </div>
 </div>
-<div class="pure-u-1">
-  <a class="button-secondary pure-button" id="export-button" href="/exportarExcelEvaluacion/" onclick="malos()" style="display: none;">Exportar Evaluaciones</a>
-</div>
 <h2>Evaluación de controlador</h2>
 <div class="pure-u-1 pure-u-md-1-3 pure-form">
   <form id="form-evaluacion" class="pure-form-stacked">
@@ -117,14 +114,14 @@
 	    	<td>{{ reg.codigo }}</td>
 	    	<td>{{ reg.aula }}</td>
         <td style="text-align: center;">
-          <form class="pure-form" id="form-calificar">
-            <input id="option-asistencia" class="radio-asistencia" type="checkbox" name="optionsRadios" value="asistio" disabled>
+          <form class="pure-form">
+            <input class="radio-asistencia" type="checkbox" name="optionsRadios" value="asistio" disabled>
           </form>
           <p class="horas-controlador" style="display: none;">{{ reg.hora_proceso }}</p>
         </td>
 	    	<td>
-        	<form class="pure-form" id="form-calificar">
-          	<select id="opt_calificacion" disabled="true" class="combo_calificacion">
+        	<form class="pure-form">
+          	<select disabled="true" class="combo_calificacion">
            		<option value="0">Seleccione</option>
 	            <option value="BUENO">BUENO</option>
 	            <option value="REGULAR">REGULAR</option>
@@ -135,7 +132,7 @@
       	</td>
       	<td>
       		<form class="pure-form">
-      			<textarea type = "text" id="text-obs" class= "text-obs" style="width:95%;" disabled="true" class="pure-input-1-2">{{ reg.obs_proceso }}</textarea>
+      			<textarea type = "text" class= "text-obs" style="width:95%;" disabled="true" class="pure-input-1-2">{{ reg.obs_proceso }}</textarea>
       		</form>
       	</td>
       	<td class="fecha-proceso" style="display: none;">{{ reg.fecha_proceso }}</td>
@@ -429,7 +426,7 @@ function giveResponse(codigo,password){
     document.getElementById("botones2").style.display = "";
     document.getElementById("lista-table_filter").style.display = "block";
     document.getElementById("numero").style.display = "";
-    document.getElementById("export-button").style.display = "";
+    //document.getElementById("export-button").style.display = "";
     $("#input-codigo").attr("disabled","disabled");
     $("#input-password").attr("disabled","disabled");
     document.getElementById("respuesta").innerHTML = "Coordinador: ADMINISTRADOR DEL SISTEMA"
@@ -444,7 +441,7 @@ function giveResponse(codigo,password){
       document.getElementById("botones2").style.display = "";
       document.getElementById("lista-table_filter").style.display = "block";
       document.getElementById("numero").style.display = "";
-      document.getElementById("export-button").style.display = "";
+      //document.getElementById("export-button").style.display = "";
       $("#input-codigo").attr("disabled","disabled");
       $("#input-password").attr("disabled","disabled");
     } else {
@@ -461,7 +458,7 @@ function giveResponse(codigo,password){
     document.getElementById("botones").style.display = "none";
     document.getElementById("botones2").style.display = "none";
     document.getElementById("lista-table_filter").style.display = "none";
-    document.getElementById("export-button").style.display = "none";
+    //document.getElementById("export-button").style.display = "none";
     $("#input-codigo").removeAttr("disabled").val("").focus();
     $("#input-password").removeAttr("disabled").val("")
     document.getElementById("respuesta").innerHTML = codigo + " no es el código de un coordinador."

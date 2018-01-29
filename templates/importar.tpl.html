@@ -19,14 +19,25 @@
 {% block content %}
 <div class="botones-cabecera" style="display: flex;">
   <div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Regresar a Reporte</a>
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/administrador/">Regresar</a>
   </div>
 </div>
 
 <h2>Subir Archivo</h2>
-<form id="file-form" method="post" enctype="multipart/form-data">
-  <input type="file" name="archivos" multiple="multiple" accept=".xls,.xlsx">
-  <button type="submit"><span> ENVIAR</span></button>
+<form id="file-form" method="post" enctype="multipart/form-data" class="pure-form pure-form-aligned">
+  <div class="pure-control-group">
+    <select name="proceso-select">
+        {% for proceso in procesos %}
+          {% if proceso %}
+            <option value="{{ proceso.idproceso }}">{{ proceso.nombre }}</option>
+          {% endif %}
+        {% endfor %}
+    </select>
+  </div>
+  <div class="pure-control-group">
+    <input type="file" name="archivos" multiple="multiple" accept=".xls,.xlsx">
+  </div>
+  <button type="submit" class="pure-button pure-button-primary"><span> ENVIAR</span></button>
 </form>
 {% endblock %}
 

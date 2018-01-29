@@ -12,7 +12,7 @@ import time
 ### EN ESTA LIBRERIA SE ENCUENTRAN LAS FUNCIONES QUE SE USAN PARA EXPORTAR A EXCEL ###
 ######################################################################################
 
-def getReporteAsistencia():
+def getReporteAsistencia(proceso_select):
   dt = datetime.now()
   #consultar bd y devolver data de la forma
   joinQuery = (
@@ -20,21 +20,18 @@ def getReporteAsistencia():
     .add_columns(
       Persona.codigo,
       Persona.nombres,
-      LaborPorProceso.cod_coord,
+      Persona.correo,
       LaborPorProceso.aula_capacitacion,
       LaborPorProceso.hora_capacitacion,
       LaborPorProceso.obs_capacitacion,
     )
     .filter(
-      and_(Proceso.es_ultimo == 1,
-      LaborPorProceso.es_coord == 0,
-      LaborPorProceso.es_apoyo == 0,
-      LaborPorProceso.es_asistente == 0)
+      Proceso.idproceso == proceso_select
     )
   )
   return joinQuery.all()
 
-def getReporteEvaluacion():
+def getReporteEvaluacion(proceso_select):
   dt = datetime.now()
   #consultar bd y devolver data de la forma
   joinQuery = (
@@ -42,6 +39,9 @@ def getReporteEvaluacion():
     .add_columns(
       Persona.codigo,
       Persona.nombres,
+      Persona.correo,
+      Proceso.nombre,
+      Proceso.fecha,
       LaborPorProceso.aula,
       LaborPorProceso.cod_coord,
       LaborPorProceso.aula_coord,
@@ -49,12 +49,12 @@ def getReporteEvaluacion():
       LaborPorProceso.es_apoyo,
       LaborPorProceso.es_asistente,
       LaborPorProceso.hora_proceso,
+      LaborPorProceso.hora_capacitacion,
       LaborPorProceso.calificacion,
       LaborPorProceso.obs_proceso,
     )
     .filter(
-      and_(Proceso.es_ultimo == 1,
-      LaborPorProceso.cod_coord != "")
+      and_(Proceso.idproceso == proceso_select)
     )
   )
   return joinQuery.all()

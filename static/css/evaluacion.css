@@ -22,16 +22,22 @@ body{
 
 .dashboard-wrapper {
   justify-content: space-around;
+  flex-wrap: wrap;
 }
 
 .dashboard-card-wrapper {
   margin: 10px 20px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-around;
 }
 
 .card-text-link {
   color: black;
+}
+
+.pure-form-aligned .pure-control-group {
+    margin-bottom: 2em;
 }
 
 .card{
@@ -46,7 +52,9 @@ body{
 .is-card-square {
   width: 15em;
   height: 15em;
-  margin: auto;
+  margin-bottom: 2em;
+  /*padding-right: 2em*/
+  margin-right: 3em;
 }
 
 .same-row-items {

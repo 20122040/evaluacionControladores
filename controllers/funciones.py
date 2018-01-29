@@ -138,3 +138,12 @@ def getAllWorkers():
       Persona.nro_convocatorias,
       Persona.nro_asistencias,
     )
+
+def getAllProcesos():
+  return Proceso.query.add_columns(
+      Proceso.idproceso,
+      Proceso.nombre,
+      Proceso.fecha,
+      Proceso.fecha_cap,
+      Proceso.es_ultimo,
+    )

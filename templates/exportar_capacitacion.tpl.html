@@ -1,0 +1,44 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Exportar Asistencia a Capacitación {% endblock %}
+
+{% block styles %}
+{% endblock %}
+
+{% block overlay%}
+<div class="processing-files">
+  <div class="container">
+    <p><i class="material-icons">sync</i></p>
+    <p>Se están procesando los archivos. Por favor espere, esta operación puede durar varios minutos...</p>
+  </div>
+</div>
+{% endblock %}
+
+
+
+{% block content %}
+<div class="botones-cabecera" style="display: flex;">
+  <div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/administrador/">Regresar</a>
+  </div>
+</div>
+
+<h3>Elige el proceso</h3>
+<form id="export-form" method="post" class="pure-form pure-form-aligned" enctype="multipart/form-data">
+  <select name="proceso-select">
+      {% for proceso in procesos %}
+        {% if proceso %}
+          <option value="{{ proceso.idproceso }}">{{ proceso.nombre }}</option>
+        {% endif %}
+      {% endfor %}
+  </select>
+  <button type="submit" class="pure-button pure-button-primary"><span> Generar Excel</span></button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+
+</script> 
+{% endblock %}

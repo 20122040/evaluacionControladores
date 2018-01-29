@@ -23,19 +23,124 @@ mod_evaluacion = Blueprint('evaluacion', __name__)
 def example():
   return "Evaluación Controladores"
 
-@mod_evaluacion.route("/exportarExcelAsistencia/",methods=['GET'])
+@mod_evaluacion.route("/exportarExcelAsistencia/",methods=['GET','POST'])
 def exportarExcelAsistencia():
-  resultados = reportes.getReporteAsistencia()
-  column_names = ['codigo', 'nombres','cod_coord','aula_capacitacion','hora_capacitacion','obs_capacitacion']
-  return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte Capacitación")
+  proc = procesos.obtenerProcesos()
+  if request.method == 'GET':
+    return render_template('exportar_capacitacion.tpl.html',procesos=proc)
+  else:
+    proceso_select = request.form['proceso-select']
+    #print("Este es el select " + str(proceso_select))
+    resultados = reportes.getReporteAsistencia(proceso_select)
+    procX = procesos.getProcesoPorId(proceso_select)
+    codigos=[]
+    nombres=[]
+    correos=[]
+    aula=[]
+    hora=[]
+    asistio=[]
+    obs=[]
+    column_names = ['codigo', 'nombres','correo','aula_capacitacion','hora_capacitacion','obs_capacitacion']
+    for res in resultados:
+      codigos.append(res.codigo)
+      nombres.append(res.nombres)
+      correos.append(res.correo)
+      aula.append(res.aula_capacitacion)
+      hora.append(res.hora_capacitacion)
+      if(res.hora_capacitacion is not None):
+        asistio.append("SI")
+      else:
+        asistio.append("NO")
+      obs.append(res.obs_capacitacion)
+    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'Aula de Capacitación': aula, 'Hora Capacitación':hora, '¿Asistió?':asistio, 'Observaciones': obs} 
+    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
 
-@mod_evaluacion.route("/exportarExcelEvaluacion/",methods=['GET'])
+    file_name = "Reporte de Asistencia - " + procX.nombre + " (" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    writer = pd.ExcelWriter('static/reportes/'+file_name)
+    df.to_excel(writer,sheet_name='Hoja 1',index=False)
+    writer.save()
+    m = ['Descargar reporte de asistencia a capacitación, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
+    return render_template('exportar_capacitacion.tpl.html',procesos=proc,messages=m)
+  #print(df) 
+  #return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte Capacitación")"""
+
+@mod_evaluacion.route("/exportarExcelEvaluacion/",methods=['GET','POST'])
 def exportarExcelEvaluacion():
-  resultados = reportes.getReporteEvaluacion()
-  proceso = procesos.getUltimoProceso()
-  nombreFile = "Evaluación de Colaboradores (" + proceso.nombre + " - " + str(proceso.fecha) + ")"
-  column_names = ['codigo', 'nombres', 'aula','cod_coord','es_coord','es_apoyo','es_asistente','hora_proceso','calificacion','obs_proceso']
-  return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name=nombreFile)
+  proc = procesos.obtenerProcesos()
+  if request.method == 'GET':
+    return render_template('exportar_evaluacion.tpl.html',procesos=proc)
+  else:
+    proceso_select = request.form['proceso-select']
+    resultados = reportes.getReporteEvaluacion(proceso_select)
+    procX = procesos.getProcesoPorId(proceso_select)
+    codigos=[]
+    nombres=[]
+    correos=[]
+    proceso_names=[]
+    es_coord=[]
+    es_apoyo=[]
+    es_asistente=[]
+    aulas=[]
+    aulas_coord=[]
+    fechas=[]
+    codigos_coord=[]
+    calificaciones=[]
+    observaciones=[]
+    asistio=[]
+    asistio_cap=[]
+    for res in resultados:
+      codigos.append(res.codigo)
+      nombres.append(res.nombres)
+      correos.append(res.correo)
+      proceso_names.append(res.nombre)
+      if(res.es_coord == 1):
+        es_coord.append("VERDADERO")
+        es_asistente.append("FALSO")
+        es_apoyo.append("FALSO")
+      elif(res.es_apoyo == 1):
+        es_coord.append("FALSO")
+        es_asistente.append("FALSO")
+        es_apoyo.append("VERDADERO")
+      elif(res.es_asistente == 1):
+        es_coord.append("FALSO")
+        es_asistente.append("VERDADERO")
+        es_apoyo.append("FALSO")
+      else:
+        es_coord.append("FALSO")
+        es_asistente.append("FALSO")
+        es_apoyo.append("FALSO")
+      aulas.append(res.aula)
+      aulas_coord.append(res.aula_coord)
+      if(res.hora_proceso is not None):
+        asistio.append("SI")
+      else:
+        asistio.append("NO")
+      if(res.calificacion == '0'):
+        calificaciones.append("-")
+      else: 
+        calificaciones.append(res.calificacion)
+      observaciones.append(res.obs_proceso)
+      fechas.append(res.fecha)
+      codigos_coord.append(res.cod_coord)
+      if(res.hora_capacitacion is not None):
+        asistio_cap.append("SI")
+      else:
+        asistio_cap.append("NO")
+
+
+    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'Proceso':proceso_names, 'Es Coordinador':es_coord, 'Es Apoyo':es_apoyo, 
+    'Es Asistente':es_asistente, 'Aula': aulas, 'Aula de Coordinación':aulas_coord, 'Fecha del Proceso':fechas, '¿Asistió al proceso?':asistio, 
+    '¿Asistió a la capacitación?':asistio_cap, 'Código de Coordinador':codigos_coord, 'Calificación':calificaciones, 'Observaciones':observaciones} 
+    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Proceso','Es Coordinador','Es Apoyo','Es Asistente','Aula',
+      'Aula de Coordinación','Fecha del Proceso','¿Asistió al proceso?','¿Asistió a la capacitación','Código de Coordinador',
+      'Calificación','Observaciones'])
+  
+    file_name = "Evaluación de Colaboradores - " + procX.nombre + " (" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    writer = pd.ExcelWriter('static/reportes/'+file_name)
+    df.to_excel(writer,sheet_name='Hoja 1',index=False)
+    writer.save()
+    m = ['Descargar reporte de evaluación de controladores, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
+    return render_template('exportar_evaluacion.tpl.html',procesos=proc,messages=m)
 
 @mod_evaluacion.route("/exportarExcelReporte/",methods=['GET'])
 def exportarExcelReporte():
@@ -64,8 +169,19 @@ def getCorreo(codigo,controladores_data,coordinadores_data):
   else:
     return str(correo) 
 
+def getAulaCapacitacion(codigo,controladores_data,coordinadores_data):
+  aula1 = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)].max()
+  if aula1 is None:
+    aula2 = coordinadores_data["CAPACITACIÓN"].loc[(coordinadores_data["Código"]==codigo)].max()
+    if aula2 is None:
+      return "-"
+    else:
+      return str(aula2)
+  else:
+    return str(aula1)
 
-def añadirBD(arch_name,controladores_data,coordinadores_data):
+
+def añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select):
   folder = "downloaded_files/"
   files = listdir(folder)
 
@@ -89,7 +205,7 @@ def añadirBD(arch_name,controladores_data,coordinadores_data):
         nuevo_controlador.correo = correo
       db.session.commit()
       #Agregando Labor_Por_Proceso
-      proceso = procesos.getUltimoProceso()
+      proceso = procesos.getProcesoPorId(proceso_select)
       es_coord = personas_data['Es coordinador'][row-1]
       es_apoyo = personas_data['Apoyo OCAI'][row-1]
       es_asistente = personas_data['Asistente OCAI'][row-1]  
@@ -97,6 +213,7 @@ def añadirBD(arch_name,controladores_data,coordinadores_data):
       aula_coord = personas_data['Aula coordinación'][row-1]
       cod_coord = personas_data['codigo Coordinador'][row-1]
       new_controlador = personas.getPersonaEditar(codigo,proceso.idproceso)
+      aula_capacitacion = getAulaCapacitacion(codigo,controladores_data,coordinadores_data)
       #Si ya hay un controlador registrado con ese código en ese proceso
       if new_controlador is not None:
         new_controlador.aula = aula
@@ -105,8 +222,9 @@ def añadirBD(arch_name,controladores_data,coordinadores_data):
         new_controlador.es_coord = 0 if es_coord == 'FALSO' else 1
         new_controlador.es_apoyo = 0 if es_apoyo == 'FALSO' else 1
         new_controlador.es_asistente = 0 if es_asistente == 'FALSO' else 1
+        new_controlador.aula_capacitacion = aula_capacitacion
       else:
-        lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0 if es_coord == 'FALSO' else 1,0 if es_apoyo == 'FALSO' else 1,0 if es_asistente == 'FALSO' else 1,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,str(cod_coord).zfill(8),'0','','','','')
+        lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0 if es_coord == 'FALSO' else 1,0 if es_apoyo == 'FALSO' else 1,0 if es_asistente == 'FALSO' else 1,aula,aula_coord,aula_capacitacion,datetime.now().date(),datetime.now().date(),None,None,str(cod_coord).zfill(8),'0','','','','')
         db.session.add(lxp)  
       db.session.commit()
       row = row + 1
@@ -114,12 +232,15 @@ def añadirBD(arch_name,controladores_data,coordinadores_data):
 
 @mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
 def importar2():
+  proc = procesos.obtenerProcesos()
   if request.method == 'GET':
     #solo mostrar el formulario
     errores = ['Descarga el formato de la base, <a href="/static/formato/'+ 'FORMATO LISTA CONTROLADORES Y COORDINADORES.xlsx' +'">Descargar el formato</a>']
-    return render_template("importar.tpl.html",messages=errores)
+    return render_template("importar.tpl.html",procesos=proc,messages=errores)
   else:
     #Si es POST entonces se subió un archivo
+    proceso_select = request.form['proceso-select']
+    procX = procesos.getProcesoPorId(proceso_select)
     if 'archivos' in request.files: #verificar si se selecciono archivos
       files = request.files.to_dict(flat=False)['archivos']
       for f in files:
@@ -130,13 +251,12 @@ def importar2():
     folder = "uploaded_files/"
     files = listdir(folder)
 
-    proceso = procesos.getUltimoProceso()
-    arch_name = 'Base para access ' + proceso.nombre + '.xlsx'
-    arch_name.replace(' ','_')
+    arch_name = 'Base para access ' + procX.nombre + '.xlsx'
+    #arch_name.replace(' ','_')
     folder_base = "static/bases/"
     files_base = listdir(folder_base)
-    if(len(files_base)!=0):
-      os.remove('static/bases/' + arch_name)
+    #if(len(files_base)!=0):
+    #  os.remove('static/bases/' + arch_name)
     writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
     writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
@@ -163,12 +283,12 @@ def importar2():
         os.remove(folder + file)
     errores = ['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>']
   
-    añadirBD(arch_name,controladores_data,coordinadores_data)
+    añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select)
 
   
     #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>']
     
-    return render_template('importar.tpl.html',messages=errores)
+    return render_template('importar.tpl.html',procesos=proc,messages=errores)
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])
 def procesarJSON():
@@ -268,6 +388,42 @@ def procesarJSONEditarPersona():
   else:
     print("No se encontró el Controlador")
     return json.dumps(False)
+
+@mod_evaluacion.route("/procesarJSONEditarProceso/",methods=["POST"])
+def procesarJSONEditarProceso():
+  #Agregando Persona
+  idproceso = request.form.get('idproceso', '')
+  name = request.form.get('name', '')
+  fecha_proc = request.form.get('fecha_proc','')
+  fecha_cap = request.form.get('fecha_cap','')
+  vigencia = request.form.get('vigencia','')
+
+  proc = procesos.getProcesoPorId(idproceso)
+  if proc is not None:
+    proc.nombre = name
+    proc.fecha = fecha_proc
+    proc.fecha_cap = fecha_cap
+    proc.es_ultimo = vigencia  
+    db.session.commit()
+    return json.dumps(True)    
+  else:
+    print("No se encontró el proceso")
+    return json.dumps(True)
+
+@mod_evaluacion.route("/procesarJSONNuevoProceso/",methods=["POST"])
+def procesarJSONNuevoProceso():
+  #Agregando Persona
+  idproceso = request.form.get('idproceso', '')
+  name = request.form.get('name', '')
+  fecha_proc = request.form.get('fecha_proc','')
+  fecha_cap = request.form.get('fecha_cap','')
+  vigencia = request.form.get('vigencia','')
+
+  nuevo_proceso = Proceso(idproceso,name,fecha_proc,fecha_cap,vigencia)  
+
+  db.session.add(nuevo_proceso)  
+  db.session.commit()
+  return json.dumps(True)    
 
 @mod_evaluacion.route("/procesarJSONNuevo/",methods=["POST"])
 def procesarJSONNuevo():
@@ -371,11 +527,6 @@ def nuevoControlador():
   pro = procesos.obtenerProcesos()
   return render_template('controlador_new.tpl.html',procesos=pro)
 
-@mod_evaluacion.route('/nuevoProceso/')
-def nuevoProceso():
-  pro = procesos.obtenerProcesos()
-  return render_template('proceso_new.tpl.html',procesos=pro)
-
 @mod_evaluacion.route('/administrador/')
 def administrador():
   cantPersonas = personas.getCantidadPersonas()
@@ -392,3 +543,36 @@ def persona():
 def editarPersona(codigo=None):
   reg = personas.getPersonaSola(codigo)
   return render_template('persona_edit.tpl.html',registro=reg)
+
+@mod_evaluacion.route('/verPersona/<codigo>')
+def verPersona(codigo=None):
+    if (codigo == None):
+      return render_template('Error.html', codigo=codigo)
+    else:
+      reg = personas.obtenerControladorPorProceso(codigo)
+      proc = procesos.obtenerProcesosControlador(codigo)
+      return render_template('persona_view.tpl.html',registro=reg,procesos=proc)
+
+@mod_evaluacion.route('/proceso/')
+def proceso():
+  reg = funciones.getAllProcesos()
+  return render_template('procesos_index.tpl.html',registros=reg)
+
+@mod_evaluacion.route('/nuevoProceso/')
+def nuevoProceso():
+  pro = funciones.getAllProcesos()
+  n = procesos.getCantidadProcesos()
+  return render_template('proceso_new.tpl.html',procesos=pro,cant=n)
+
+@mod_evaluacion.route('/editarProceso/<idproceso>')
+def editarProceso(idproceso=None):
+  reg = procesos.getProcesoPorId(idproceso)
+  return render_template('proceso_edit.tpl.html',registro=reg)
+
+@mod_evaluacion.route('/eliminarProceso/<idproceso>')
+def eliminarProceso(idproceso=None):
+  proc = procesos.getProcesoPorId(idproceso)
+  db.session.delete(proc)
+  db.session.commit()
+  reg = funciones.getAllProcesos()
+  return render_template('procesos_index.tpl.html',registros=reg)

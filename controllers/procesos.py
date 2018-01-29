@@ -27,6 +27,10 @@ def getUltimoProceso():
   query = Proceso.query.filter_by(es_ultimo=1).first()
   return query
 
+def getProcesoPorId(idproceso):
+  query = Proceso.query.filter_by(idproceso=idproceso).first()
+  return query
+
 def obtenerProcesosControlador(codigo):
   #consultar bd y devolver data de la forma
   joinQuery = (

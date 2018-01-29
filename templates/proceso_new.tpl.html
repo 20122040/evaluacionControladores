@@ -1,0 +1,88 @@
+{% extends "base.tpl.html" %}
+
+{% block title %} Evaluación Controladores {% endblock %}
+
+{% block styles %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content%}
+
+<!--agregar aqui el html -->
+<div class="pure-u-1">
+    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/proceso/">Regresar</a>
+</div>
+
+<h1>Nuevo Proceso</h1>
+    
+<form class="pure-form pure-form-aligned" id="form-editar">
+  <fieldset>  
+    <div class="pure-control-group">
+      <label for="idproceso">Código de Proceso: </label>
+        <input id="idproceso" type="text" placeholder="" style="width: 25em;" value="{{ cant + 1}}" readonly>
+    </div>
+
+    <div class="pure-control-group">
+      <label for="name">Nombre del Proceso: </label>
+        <input id="name" type="text" placeholder="" style="width: 25em;" required>
+    </div>
+
+    <div class="pure-control-group">
+      <label for="fecha_proc">Fecha del Proceso: </label>
+        <input id="fecha_proc" type="date" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+      <label for="fecha_cap">Fecha de la Capacitación: </label>
+        <input id="fecha_cap" type="date" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+      <label for="vigencia">¿Es vigente? </label>
+      <input type="radio" name="vigencia" value="1" checked> Si
+      <input type="radio" name="vigencia" value="0"> No
+    </div>
+
+    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
+    <div class="loader" id="loading2" style="display: none; position: center;"></div>
+  </fieldset>
+  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
+</form>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
+<script>
+
+function myFunction(){
+  $('#loading2').hide();
+  window.location.href = "/proceso/";
+}
+
+$(document).ready(function(){
+  var hideResult;
+  $("#form-editar").submit(function(){
+    var idproceso = $("#idproceso").val();
+    var name = $("#name").val();
+    var vigencia = $('input[name=vigencia]:checked').val();
+    var fecha_proc = $("#fecha_proc").val();
+    var fecha_cap = $("#fecha_cap").val();
+    
+    $.post(
+      "{{ url_for(request.script_root+'.procesarJSONNuevoProceso') }}",
+      {"idproceso":idproceso,"name":name,"vigencia":vigencia,"fecha_proc":fecha_proc,"fecha_cap":fecha_cap},
+      function(data){
+        $('#loading2').show();
+        setTimeout(myFunction, 5000);
+      }
+    ).fail();
+    return false;
+
+  });
+});
+</script>
+{% endblock %}

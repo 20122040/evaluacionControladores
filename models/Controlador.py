@@ -29,7 +29,6 @@ class Persona(db.Model):
       result["procesos"] = [a.getAsDict(rel_level-1) for a in self.procesos]
     return result
 
-
 class Proceso(db.Model):
   idproceso = db.Column(db.Integer,primary_key=True)
   nombre = db.Column(db.String(255))
@@ -38,7 +37,8 @@ class Proceso(db.Model):
   es_ultimo = db.Column(db.Integer)
   personas = db.relationship('LaborPorProceso',backref='proceso',lazy='dynamic')
 
-  def __init__(self,nombre,fecha,fecha_cap,es_ultimo):
+  def __init__(self,idproceso,nombre,fecha,fecha_cap,es_ultimo):
+    self.idproceso = idproceso
     self.nombre = nombre
     self.fecha = fecha
     self.fecha_cap = fecha_cap
