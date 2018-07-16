@@ -4,14 +4,16 @@ class Persona(db.Model):
   codigo = db.Column(db.String(8), primary_key=True)
   nombres = db.Column(db.String(255))
   correo = db.Column(db.String(255))
+  tipoPersona = db.Column(db.String(255))
   nro_convocatorias = db.Column(db.Integer)
   nro_asistencias = db.Column(db.Integer)
   procesos = db.relationship('LaborPorProceso',backref='persona',lazy='dynamic')
 
-  def __init__(self,codigo,nombre,correo,nro_asistencias,nro_convocatorias):
+  def __init__(self,codigo,nombre,correo,tipoPersona,nro_asistencias,nro_convocatorias):
     self.codigo = codigo
     self.nombres = nombre
     self.correo = correo
+    self.tipoPersona = tipoPersona
     self.nro_convocatorias = nro_convocatorias
     self.nro_asistencias = nro_asistencias
 
@@ -23,6 +25,7 @@ class Persona(db.Model):
     result["codigo"]=self.codigo
     result["nombres"]=self.nombres
     result["correo"] = self.correo
+    result["tipoPersona"] = self.tipoPersona
     result["nro_convocatorias"] = self.nro_convocatorias
     result["nro_asistencias"] = self.nro_asistencias
     if rel_level > 0:

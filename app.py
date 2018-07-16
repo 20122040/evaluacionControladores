@@ -5,12 +5,13 @@ from urllib.parse import quote_plus
 import flask_excel as excel
 
 UPLOAD_FOLDER = 'uploaded_files'
+#UPLOAD_FOLDER  '/var/www/asistenciaControladores/asistenciaPucp/uploaded_files'
 ALLOWED_EXTENSIONS = set(['xls','xlsx'])
 
 app = Flask(__name__)
 excel.init_excel(app)
 app.config['DEBUG'] = True
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://asistencia:NGsg9iKG9VBwQDO@127.0.0.1/asistencia'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://asistencia:NGsg9iKG9VBwQDO@127.0.0.1/asistenciaControladores'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:admin@localhost:3306/evaluacionControlador'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

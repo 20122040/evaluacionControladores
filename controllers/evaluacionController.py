@@ -23,6 +23,16 @@ mod_evaluacion = Blueprint('evaluacion', __name__)
 def example():
   return "Evaluación Controladores"
 
+def quitarEspacios(cadena):
+  cadena = cadena.replace(' ','')
+  cadena = cadena.replace('°','')
+  cadena = cadena.replace('á','a')
+  cadena = cadena.replace('é','e')
+  cadena = cadena.replace('í','i')
+  cadena = cadena.replace('ó','o')
+  cadena = cadena.replace('ú','u')
+  return cadena
+
 @mod_evaluacion.route("/exportarExcelAsistencia/",methods=['GET','POST'])
 def exportarExcelAsistencia():
   proc = procesos.obtenerProcesos()
@@ -40,11 +50,12 @@ def exportarExcelAsistencia():
     hora=[]
     asistio=[]
     obs=[]
-    column_names = ['codigo', 'nombres','correo','aula_capacitacion','hora_capacitacion','obs_capacitacion']
+    column_names = ['codigo', 'nombres','correo','LaborPUCP','aula_capacitacion','hora_capacitacion','obs_capacitacion']
     for res in resultados:
       codigos.append(res.codigo)
       nombres.append(res.nombres)
       correos.append(res.correo)
+      labor.append(res.tipoPersona)
       aula.append(res.aula_capacitacion)
       hora.append(res.hora_capacitacion)
       if(res.hora_capacitacion is not None):
@@ -52,17 +63,16 @@ def exportarExcelAsistencia():
       else:
         asistio.append("NO")
       obs.append(res.obs_capacitacion)
-    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'Aula de Capacitación': aula, 'Hora Capacitación':hora, '¿Asistió?':asistio, 'Observaciones': obs} 
-    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
+    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'LaborPUCP':labor,'Aula de Capacitación': aula, 'Hora Capacitación':hora, '¿Asistió?':asistio, 'Observaciones': obs} 
+    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Labor PUCP','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
 
-    file_name = "Reporte de Asistencia - " + procX.nombre + " (" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    file_name = "ReporteDeAsistencia-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
     writer = pd.ExcelWriter('static/reportes/'+file_name)
     df.to_excel(writer,sheet_name='Hoja 1',index=False)
     writer.save()
     m = ['Descargar reporte de asistencia a capacitación, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
     return render_template('exportar_capacitacion.tpl.html',procesos=proc,messages=m)
-  #print(df) 
-  #return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte Capacitación")"""
 
 @mod_evaluacion.route("/exportarExcelEvaluacion/",methods=['GET','POST'])
 def exportarExcelEvaluacion():
@@ -76,6 +86,7 @@ def exportarExcelEvaluacion():
     codigos=[]
     nombres=[]
     correos=[]
+    labor=[]
     proceso_names=[]
     es_coord=[]
     es_apoyo=[]
@@ -92,6 +103,7 @@ def exportarExcelEvaluacion():
       codigos.append(res.codigo)
       nombres.append(res.nombres)
       correos.append(res.correo)
+      labor.append(res.tipoPersona)
       proceso_names.append(res.nombre)
       if(res.es_coord == 1):
         es_coord.append("VERDADERO")
@@ -128,14 +140,15 @@ def exportarExcelEvaluacion():
         asistio_cap.append("NO")
 
 
-    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'Proceso':proceso_names, 'Es Coordinador':es_coord, 'Es Apoyo':es_apoyo, 
-    'Es Asistente':es_asistente, 'Aula': aulas, 'Aula de Coordinación':aulas_coord, 'Fecha del Proceso':fechas, '¿Asistió al proceso?':asistio, 
-    '¿Asistió a la capacitación?':asistio_cap, 'Código de Coordinador':codigos_coord, 'Calificación':calificaciones, 'Observaciones':observaciones} 
-    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Proceso','Es Coordinador','Es Apoyo','Es Asistente','Aula',
-      'Aula de Coordinación','Fecha del Proceso','¿Asistió al proceso?','¿Asistió a la capacitación','Código de Coordinador',
-      'Calificación','Observaciones'])
+    d = {'Codigo': codigos, 'Nombres': nombres, 'Correo':correos, 'Labor PUCP':labor, 'Proceso':proceso_names, 'Es Coordinador':es_coord, 'Es Apoyo':es_apoyo, 
+    'Es Asistente':es_asistente, 'Aula': aulas, 'Aula de Coordinacion':aulas_coord, 'Fecha del Proceso':fechas, 'Asistio al proceso':asistio, 
+    'Asistio a la capacitacion':asistio_cap, 'Codigo de Coordinador':codigos_coord, 'Calificacion':calificaciones, 'Observaciones':observaciones} 
+    df = pd.DataFrame(data=d,columns=['Codigo','Nombres','Correo','Labor PUCP','Proceso','Es Coordinador','Es Apoyo','Es Asistente','Aula',
+      'Aula de Coordinacion','Fecha del Proceso','Asistio al proceso','Asistio a la capacitacion','Codigo de Coordinador',
+      'Calificacion','Observaciones'])
   
-    file_name = "Evaluación de Colaboradores - " + procX.nombre + " (" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    file_name = "EvaluacionDeColaboradores-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+    #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
     writer = pd.ExcelWriter('static/reportes/'+file_name)
     df.to_excel(writer,sheet_name='Hoja 1',index=False)
     writer.save()
@@ -146,7 +159,7 @@ def exportarExcelEvaluacion():
 def exportarExcelReporte():
   resultados = reportes.getReporte()
   column_names = ['codigo', 'nombres', 'nombre','calificacion','obs_proceso','nro_convocatorias','nro_asistencias','correo']
-  return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="Reporte General")
+  return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="ReporteGeneral")
 
 @mod_evaluacion.route("/reporte/")
 def reporte():
@@ -159,29 +172,41 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def getCorreo(codigo,controladores_data,coordinadores_data):
-  correo = controladores_data["Correo electrónico"].loc[(controladores_data["Código"]==codigo)].max()
-  if correo is None:
-    correo2 = coordinadores_data["Correo electrónico"].loc[(coordinadores_data["Código"]==codigo)].max()
-    if correo2 is None:
-      return "No hay correo"
-    else:
-      return str(correo2)
+  #coordinadores_data['Código'] = coordinadores_data['Código'].astype(str)
+  #coordinadores_data['Código'] = coordinadores_data['Código'].apply(lambda x: x.zfill(8))
+
+  controladores_data['Código'] = controladores_data['Código'].astype(str)
+  controladores_data['Código'] = controladores_data['Código'].apply(lambda x: x.zfill(8))
+  
+  correo = coordinadores_data["Correo electrónico"].loc[(coordinadores_data["Código"]==codigo)]
+  if (len(correo)!=0):
+    return correo.values[0]
   else:
-    return str(correo) 
+    correo = controladores_data["Correo electrónico"].loc[(controladores_data["Código"]==codigo)]
+    if (len(correo)!=0):
+      return correo.values[0]
+    else:
+      return "No hay correos"
 
 def getAulaCapacitacion(codigo,controladores_data,coordinadores_data):
-  aula1 = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)].max()
-  if aula1 is None:
-    aula2 = coordinadores_data["CAPACITACIÓN"].loc[(coordinadores_data["Código"]==codigo)].max()
-    if aula2 is None:
-      return "-"
-    else:
-      return str(aula2)
-  else:
-    return str(aula1)
+  #coordinadores_data['Código'] = coordinadores_data['Código'].astype(str)
+  #coordinadores_data['Código'] = coordinadores_data['Código'].apply(lambda x: x.zfill(8))
 
+  controladores_data['Código'] = controladores_data['Código'].astype(str)
+  controladores_data['Código'] = controladores_data['Código'].apply(lambda x: x.zfill(8))
+
+  aula = coordinadores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)]
+  if (len(aula)!=0):
+    return aula.values[0]
+  else:
+    aula = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]=codigo)]
+    if (len(aula)!=0):
+      return aula.values[0]
+    else:
+      return "Sin aula"
 
 def añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select):
+  #folder = "/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/"
   folder = "downloaded_files/"
   files = listdir(folder)
 
@@ -197,7 +222,7 @@ def añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select):
       nuevo_controlador = personas.getPersonaSola(codigo);
       if nuevo_controlador is None:
         print("No se encontró código")
-        controlador = Persona(str(codigo).zfill(8),nombres,correo,0,0)
+        controlador = Persona(str(codigo).zfill(8),nombres,correo,'',0,0)
         db.session.add(controlador)
       else:
         print("Se encontró código")
@@ -228,6 +253,7 @@ def añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select):
         db.session.add(lxp)  
       db.session.commit()
       row = row + 1
+  #os.remove('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/' + arch_name)
   os.remove('downloaded_files/' + arch_name)
 
 @mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
@@ -248,15 +274,19 @@ def importar2():
           filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
           f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
     #Se procesan los archivos
+    #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
     folder = "uploaded_files/"
     files = listdir(folder)
 
-    arch_name = 'Base para access ' + procX.nombre + '.xlsx'
+    arch_name = 'BaseParaAccess' + quitarEspacios(procX.nombre) + '.xlsx'
     #arch_name.replace(' ','_')
+    #folder_base = "/var/www/asistenciaControladores/asistenciaPucp/static/bases/"
     folder_base = "static/bases/"
     files_base = listdir(folder_base)
     #if(len(files_base)!=0):
     #  os.remove('static/bases/' + arch_name)
+    #writer = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/'+arch_name)
+    #writer2 = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/static/bases'+arch_name)
     writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
     writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
@@ -310,7 +340,8 @@ def procesarJSON():
       controlador.obs_capacitacion = observaciones
     if(asistencia == "true"):
       if(option == '1'):
-        controlador.hora_proceso = datetime.now().time()
+        if(controlador.hora_proceso is None):
+          controlador.hora_proceso = datetime.now().time()
       else:
         controlador.hora_capacitacion = datetime.now().time()
     elif (asistencia == "false"):
