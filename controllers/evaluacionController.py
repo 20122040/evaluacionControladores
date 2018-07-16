@@ -199,7 +199,7 @@ def getAulaCapacitacion(codigo,controladores_data,coordinadores_data):
   if (len(aula)!=0):
     return aula.values[0]
   else:
-    aula = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]=codigo)]
+    aula = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)]
     if (len(aula)!=0):
       return aula.values[0]
     else:

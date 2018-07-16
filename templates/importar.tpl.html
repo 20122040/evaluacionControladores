@@ -29,7 +29,7 @@
     <select name="proceso-select">
         {% for proceso in procesos %}
           {% if proceso %}
-            <option value="{{ proceso.idproceso }}">{{ proceso.nombre }}</option>
+            <option value="{{ proceso.idproceso }}" selected="{% if proceso.es_ultimo %} selected {% endif %}">{{ proceso.nombre }}</option>
           {% endif %}
         {% endfor %}
     </select>

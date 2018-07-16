@@ -17,6 +17,7 @@ def obtenerProcesos():
       Proceso.nombre,
       Proceso.idproceso,
       Proceso.fecha,
+      Proceso.es_ultimo
     )
   return query
 
