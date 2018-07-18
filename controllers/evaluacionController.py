@@ -4,6 +4,7 @@ import time
 import os
 import xlsxwriter
 import pandas as pd
+import math
 #import xlrd
 
 from flask import Flask, request, render_template, Blueprint, redirect, url_for
@@ -177,12 +178,13 @@ def getCorreo(codigo,controladores_data,coordinadores_data):
 
   controladores_data['Código'] = controladores_data['Código'].astype(str)
   controladores_data['Código'] = controladores_data['Código'].apply(lambda x: x.zfill(8))
-  
-  correo = coordinadores_data["Correo electrónico"].loc[(coordinadores_data["Código"]==codigo)]
+
+  codigo = str(codigo).zfill(8)
+  correo = coordinadores_data["Correo electrónico"].loc[(coordinadores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]
   if (len(correo)!=0):
     return correo.values[0]
   else:
-    correo = controladores_data["Correo electrónico"].loc[(controladores_data["Código"]==codigo)]
+    correo = controladores_data["Correo electrónico"].loc[(controladores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]
     if (len(correo)!=0):
       return correo.values[0]
     else:
@@ -195,11 +197,11 @@ def getAulaCapacitacion(codigo,controladores_data,coordinadores_data):
   controladores_data['Código'] = controladores_data['Código'].astype(str)
   controladores_data['Código'] = controladores_data['Código'].apply(lambda x: x.zfill(8))
 
-  aula = coordinadores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)]
+  aula = coordinadores_data["CAPACITACIÓN"].loc[(controladores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]
   if (len(aula)!=0):
     return aula.values[0]
   else:
-    aula = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"]==codigo)]
+    aula = controladores_data["CAPACITACIÓN"].loc[(controladores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]
     if (len(aula)!=0):
       return aula.values[0]
     else:
@@ -290,15 +292,16 @@ def importar2():
     writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
     writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
+    errores=[]
     for file in files:
       print("Leyendo: " + folder + file + "...\n")
       coordinadores_data = pd.read_excel(folder + file,'COORDINADORES')
       #print(coordinadores_data)
       controladores_data = pd.read_excel(folder + file,'CONTROLADORES')
-      importar.writeToCoordinadores(writer,coordinadores_data)
-      importar.writeToControladores(writer,controladores_data)
-      importar.writeToCoordinadores(writer2,coordinadores_data)
-      importar.writeToControladores(writer2,controladores_data)
+      importar.writeToCoordinadores(writer,coordinadores_data,errores,1)
+      importar.writeToControladores(writer,controladores_data,errores,1)
+      importar.writeToCoordinadores(writer2,coordinadores_data,errores,0)
+      importar.writeToControladores(writer2,controladores_data,errores,0)
       worksheet = writer.add_worksheet('AULAS')
       worksheet = writer2.add_worksheet('AULAS')
       importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data)
@@ -311,13 +314,11 @@ def importar2():
     for file in files:
       if(file[file.find("."):] in [".xls",".xlsx"]):
         os.remove(folder + file)
-    errores = ['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>']
-  
-    añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select)
-
-  
-    #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>']
     
+    if (len(errores)==0):
+      añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select)
+      #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>'
+      errores.append(['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>'])
     return render_template('importar.tpl.html',procesos=proc,messages=errores)
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])

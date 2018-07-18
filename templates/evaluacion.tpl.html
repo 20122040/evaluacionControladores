@@ -245,6 +245,7 @@ function guardar(){
 	//bloquear();
   var comentarioGeneral = document.getElementById("comentario-general").value;
   //alert(comentarioGeneral);
+  
 	table = document.getElementById("lista-table");
   tr = table.getElementsByTagName("tr");
   // Loop through all table rows, and hide those who don't match the search query
@@ -309,24 +310,26 @@ function guardar(){
     for(j=0;j<codigos.length;j++){
       //alert(codigos[j] + " " + calificacion[j] + " " + observaciones[j] + " " + asistencia[j]);
       //Aquí probablemente va la función para guardar
+      bloquear();
+      $('#loading2').show();
+      $('#btn-save').attr('disabled','disabled');
+      $('#btn-edit').attr('disabled','disabled');
+      $('#btn-save2').attr('disabled','disabled');
+      $('#btn-edit2').attr('disabled','disabled');
       $.post(
           "{{ url_for(request.script_root+'.procesarJSON') }}",
           {"codigo":codigos[j],"calificacion":calificacion[j],"observaciones":observaciones[j],"observacionesCoordinacion":observacionesCoordinacion[j],"asistencia":asistencia[j],"option":'1'},
-          function(data){
-          
+          function(data,status){
+            if (status='success'){
+              myFunction();
+            }
         }
       ).fail()
     }
 
     //guardarAsistenciaGeneral();
-    bloquear();
-    alert("Espere un minuto hasta que se registre la asistencia.")
-    $('#loading2').show();
-    $('#btn-save').attr('disabled','disabled');
-    $('#btn-edit').attr('disabled','disabled');
-    $('#btn-save2').attr('disabled','disabled');
-    $('#btn-edit2').attr('disabled','disabled');
-    setTimeout(myFunction, 10000)
+
+    //setTimeout(myFunction, 10000)
   }
 }
 
