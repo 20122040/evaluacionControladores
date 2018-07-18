@@ -57,7 +57,8 @@ def obtenerControladorPorProceso(codigo,idproceso=0):
       LaborPorProceso.aula_coord,
       LaborPorProceso.cod_coord,
       LaborPorProceso.calificacion,
-      LaborPorProceso.obs_proceso
+      LaborPorProceso.obs_proceso,
+      LaborPorProceso.password
     ))
 
   if(idproceso == 0):

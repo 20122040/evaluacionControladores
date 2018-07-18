@@ -73,6 +73,11 @@
         <textarea id="obs_proceso" class="pure-input-1-2">{{registro.obs_proceso}}</textarea>
     </div>
 
+    <div class="pure-control-group">
+      <label for="password">Password: </label>
+      <input id="password" type="text" value="{{registro.password}}" style="width: 25em;">
+    </div>
+
     <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
     <div class="loader" id="loading2" style="display: none; position: center;"></div>
   </fieldset>
@@ -86,8 +91,9 @@
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
 <script>
 
-function myFunction(){
+function requestError(){
   $('#loading2').hide();
+  alert("Error al editar controlador.")
 }
 
 $(document).ready(function(){
@@ -103,16 +109,22 @@ $(document).ready(function(){
     var cod_coord = $("#cod_coord").val();
     var calificacion = $("#calificacion").val();
     var obs_proceso = $("#obs_proceso").val();
+    var password = $("#password").val();
     //alert(codigo + "\n" + name + "\n" + email + "\n" + labor + "\n" + aula + "\n" + aula_coord + "\n" + cod_coord + "\n" + calificacion + "\n" + obs_proceso);
     //alert("Estoy aquí")
+    $('#loading2').show();
     $.post(
       "{{ url_for(request.script_root+'.procesarJSONEditar') }}",
-      {"codigo":codigo,"proceso":proceso,"name":name,"email":email,"labor":labor,"aula":aula,"aula_coord":aula_coord,"cod_coord":cod_coord,"calificacion":calificacion,"obs_proceso":obs_proceso},
-      function(data){
-        $('#loading2').show();
-        setTimeout(myFunction, 5000);
+      {"codigo":codigo,"proceso":proceso,"name":name,"email":email,"labor":labor,"aula":aula,"aula_coord":aula_coord,"cod_coord":cod_coord,"calificacion":calificacion,"obs_proceso":obs_proceso,"password":password},
+      function(data,status){
+        if(status==='success'){
+          //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
+          $('#loading2').hide();
+          window.location.href = "/reporte/";
+          return false;
+        }
       }
-    ).fail();
+    ).fail(requestError);
     return false;
     reload();
   });

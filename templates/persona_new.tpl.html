@@ -15,24 +15,28 @@
     <a class="pure-button" style="margin-top:5px;" id="reporte" href="/persona/">Regresar</a>
 </div>
 
-<h1>Editar Persona</h1>
-<h3> Código PUCP: {{registro.codigo}} </h3>
-<p id="codigo" style="display: none;">{{registro.codigo}}</p>
+<h1>Nuevo Proceso</h1>
+    
 <form class="pure-form pure-form-aligned" id="form-editar">
-  <fieldset>    
+  <fieldset>  
     <div class="pure-control-group">
-      <label for="name">Nombres: </label>
-        <input id="name" type="text" placeholder="" value ="{{registro.nombres}}" style="width: 25em;">
+      <label for="idproceso">Código PUCP: </label>
+        <input id="codigoPUCP" type="text" placeholder="" style="width: 25em;" required="">
     </div>
 
     <div class="pure-control-group">
-      <label for="email">Correo PUCP: </label>
-        <input id="email" type="text" placeholder="" value ="{{registro.correo}}" style="width: 25em;">
+      <label for="name">Nombres y apellidos: </label>
+        <input id="name" type="text" placeholder="" style="width: 25em;" required>
     </div>
 
     <div class="pure-control-group">
-      <label for="tipo">Tipo trabajador: </label>
-        <input id="tipo" type="text" placeholder="" value ="{{registro.tipoPersona}}" style="width: 25em;">
+      <label for="email">Correo electrónico: </label>
+        <input id="email" type="email" placeholder="" style="width: 25em;">
+    </div>
+
+    <div class="pure-control-group">
+      <label for="tipo">Tipo de trabajador: </label>
+        <input id="tipo" type="text" placeholder="" style="width: 25em;">
     </div>
 
     <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
@@ -50,35 +54,40 @@
 
 //function myFunction(){
 //  $('#loading2').hide();
+//  window.location.href = "/proceso/";
 //}
 
-function requestError(){
+function requestError() {
   $('#loading2').hide();
-  alert("Error al guardar los datos");
+  alert("Error al guardar los datos")
 }
 
 $(document).ready(function(){
   var hideResult;
   $("#form-editar").submit(function(){
-    var codigo = $("#codigo").html();
+    var codigoPUCP = $("#codigoPUCP").val();
     var name = $("#name").val();
     var email = $("#email").val();
     var tipo = $("#tipo").val();
+    //Inicia la carga y se muestra el loader
     $('#loading2').show();
     $.post(
-      "{{ url_for(request.script_root+'.procesarJSONEditarPersona') }}",
-      {"codigo":codigo,"name":name,"email":email,"tipo":tipo},
+      "{{ url_for(request.script_root+'.procesarJSONNuevoPersona') }}",
+      {"codigoPUCP":codigoPUCP,"name":name,"email":email,"tipo":tipo},
       function(data,status){
+        //alert(status);
         if(status==='success'){
           //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
           $('#loading2').hide();
           window.location.href = "/persona/";
           return false;
         }
+        //$('#loading2').show();
         //setTimeout(myFunction, 5000);
       }
     ).fail(requestError);
     return false;
+
   });
 });
 </script>

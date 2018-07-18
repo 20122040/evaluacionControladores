@@ -58,9 +58,14 @@
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
 <script>
 
-function myFunction(){
+//function myFunction(){
+//  $('#loading2').hide();
+//  window.location.href = "/proceso/";
+//}
+
+function requestError() {
   $('#loading2').hide();
-  window.location.href = "/proceso/";
+  alert("Error al guardar los datos")
 }
 
 $(document).ready(function(){
@@ -71,15 +76,23 @@ $(document).ready(function(){
     var vigencia = $('input[name=vigencia]:checked').val();
     var fecha_proc = $("#fecha_proc").val();
     var fecha_cap = $("#fecha_cap").val();
-    
+    //Inicia la carga y se muestra el loader
+    $('#loading2').show();
     $.post(
       "{{ url_for(request.script_root+'.procesarJSONNuevoProceso') }}",
       {"idproceso":idproceso,"name":name,"vigencia":vigencia,"fecha_proc":fecha_proc,"fecha_cap":fecha_cap},
-      function(data){
-        $('#loading2').show();
-        setTimeout(myFunction, 5000);
+      function(data,status){
+        //alert(status);
+        if(status==='success'){
+          //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
+          $('#loading2').hide();
+          window.location.href = "/proceso/";
+          return false;
+        }
+        //$('#loading2').show();
+        //setTimeout(myFunction, 5000);
       }
-    ).fail();
+    ).fail(requestError);
     return false;
 
   });

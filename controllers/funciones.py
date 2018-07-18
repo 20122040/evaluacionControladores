@@ -81,17 +81,14 @@ def getReporteControladores(opt=0):
       LaborPorProceso.obs_coordinacion,
     ))
   if(opt==0):
-    joinQuery = joinQuery.filter(
-      and_(LaborPorProceso.es_coord == 0,
-      LaborPorProceso.es_apoyo == 0,
-      LaborPorProceso.es_asistente == 0))
+    joinQuery = joinQuery
   else:
     joinQuery = joinQuery.filter(Proceso.es_ultimo == 1)
 
   return joinQuery
 
 def getAulas():
-  query = LaborPorProceso.query.join(Proceso,Proceso.idproceso == LaborPorProceso.idproceso).distinct(LaborPorProceso.aula_capacitacion).group_by(LaborPorProceso.aula_capacitacion).filter(Proceso.es_ultimo == 1)
+  query = LaborPorProceso.query.join(Proceso,Proceso.idproceso == LaborPorProceso.idproceso).distinct(LaborPorProceso.aula_capacitacion).group_by(LaborPorProceso.aula_capacitacion,LaborPorProceso.id_lxp).filter(Proceso.es_ultimo == 1)
   return query
 
 def getAsistentes():
@@ -135,6 +132,7 @@ def getAllWorkers():
       Persona.codigo,
       Persona.nombres,
       Persona.correo,
+      Persona.tipoPersona,
       Persona.nro_convocatorias,
       Persona.nro_asistencias,
     )

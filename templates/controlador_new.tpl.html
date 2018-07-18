@@ -38,7 +38,7 @@
         <label for="proceso">Proceso: </label>
         <select id="proceso">
           {% for proceso in procesos %}
-            <option value="{{ proceso.idproceso }}"> 
+            <option value="{{ proceso.idproceso }}" selected="{% if proceso.es_ultimo %} selected {% endif %}"> 
               {{ proceso.nombre }}
             </option>
           {% endfor %}
@@ -83,9 +83,9 @@
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
 <script>
 
-function myFunction(){
+function requestError(){
   $('#loading2').hide();
-  alert("Controlador registrado")
+  alert("Error al registrar controlador")
 }
 
 $(document).ready(function(){
@@ -101,15 +101,19 @@ $(document).ready(function(){
     var cod_coord = $("#cod_coord").val();
     //alert(codigo + "\n" + name + "\n" + email + "\n" + proceso + "\n" +labor + "\n" + aula + "\n" + aula_coord + "\n" + cod_coord);
     //alert("Estoy aquí")
-    
+    $('#loading2').show();
     $.post(
       "{{ url_for(request.script_root+'.procesarJSONNuevo') }}",
       {"codigo":codigo,"proceso":proceso,"name":name,"email":email,"labor":labor,"aula":aula,"aula_coord":aula_coord,"cod_coord":cod_coord},
-      function(data){
-        $('#loading2').show();
-        setTimeout(myFunction, 5000);
+      function(data,status){
+        if (status==='success'){
+          $('#loading2').hide();
+          window.location.href = "/reporte/";
+          return false;
+        }
+        
       }
-    ).fail();
+    ).fail(requestError);
     return false;
   });
 });

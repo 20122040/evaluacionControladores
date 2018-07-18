@@ -368,6 +368,7 @@ def procesarJSONEditar():
   cod_coord = request.form.get('cod_coord','')
   calificacion = request.form.get('calificacion','')
   obs_proceso = request.form.get('obs_proceso','')
+  password = request.form.get('password','')
 
   controlador = personas.getPersonaEditar(codigo,proceso)
   person= personas.getPersonaSola(codigo)
@@ -398,22 +399,44 @@ def procesarJSONEditar():
     controlador.cod_coord = cod_coord
     controlador.calificacion = calificacion
     controlador.obs_proceso = obs_proceso
+    controlador.password = password
     db.session.commit()
     return json.dumps(True)
   else:
     print("No se encontró el Controlador")
     return json.dumps(False)
 
+@mod_evaluacion.route("/procesarJSONNuevoPersona/",methods=["POST"])
+def procesarJSONNuevoPersona():
+  codigoPUCP = request.form.get('codigoPUCP', '')
+  name = request.form.get('name', '')
+  email = request.form.get('email','')
+  tipo = request.form.get('tipo','')
+
+  person = personas.getPersonaSola(codigoPUCP)
+  if person is not None:
+    person.nombres = name
+    person.correo = email
+    person.tipoPersona = tipo
+  else:
+    controlador = Persona(str(codigoPUCP).zfill(8),name,email,tipo,0,0)
+    db.session.add(controlador)
+    #print("No se encontró el Controlador")    
+  db.session.commit()
+  return json.dumps(False)
+
 @mod_evaluacion.route("/procesarJSONEditarPersona/",methods=["POST"])
 def procesarJSONEditarPersona():
   codigo = request.form.get('codigo', '')
   name = request.form.get('name', '')
   email = request.form.get('email','')
+  tipo = request.form.get('tipo','')
 
   person= personas.getPersonaSola(codigo)
   if person is not None:
     person.nombres = name
     person.correo = email
+    person.tipoPersona = tipo
     db.session.commit()
     return json.dumps(True)
   else:
@@ -429,6 +452,9 @@ def procesarJSONEditarProceso():
   fecha_cap = request.form.get('fecha_cap','')
   vigencia = request.form.get('vigencia','')
 
+  fecha_proc = None if fecha_proc=='' else fecha_proc
+  fecha_cap = None if fecha_cap=='' else fecha_cap
+
   proc = procesos.getProcesoPorId(idproceso)
   if proc is not None:
     proc.nombre = name
@@ -443,12 +469,15 @@ def procesarJSONEditarProceso():
 
 @mod_evaluacion.route("/procesarJSONNuevoProceso/",methods=["POST"])
 def procesarJSONNuevoProceso():
-  #Agregando Persona
+  #Agregando Proceso
   idproceso = request.form.get('idproceso', '')
   name = request.form.get('name', '')
   fecha_proc = request.form.get('fecha_proc','')
   fecha_cap = request.form.get('fecha_cap','')
   vigencia = request.form.get('vigencia','')
+
+  fecha_proc = None if fecha_proc=='' else fecha_proc
+  fecha_cap = None if fecha_cap=='' else fecha_cap
 
   nuevo_proceso = Proceso(idproceso,name,fecha_proc,fecha_cap,vigencia)  
 
@@ -473,7 +502,7 @@ def procesarJSONNuevo():
     nuevo_controlador.nro_convocatorias = 0;
   else:
     #De lo contrario se crea a esa persona
-    controlador = Persona(codigo,name,email,0,0)
+    controlador = Persona(codigo,name,email,'',0,0)
     db.session.add(controlador)
   db.session.commit()
 
@@ -569,6 +598,10 @@ def administrador():
 def persona():
   reg = funciones.getAllWorkers()
   return render_template('persona_index.tpl.html',registros=reg)
+
+@mod_evaluacion.route('/nuevoPersona/')
+def nuevoPersona():
+  return render_template('persona_new.tpl.html')
 
 @mod_evaluacion.route('/editarPersona/<codigo>')
 def editarPersona(codigo=None):

@@ -28,9 +28,10 @@
     <select id="cmb_aula" class="pure-input-1-2" onchange="filtrarTabla()">
       <option value="Seleccione">Seleccione</option>
       {% for aula in aulas %}
-        {% if aula %}
+        <option value="{{ aula.aula_capacitacion }}">{{ aula.aula_capacitacion }}</option>
+        <!--{% if aula %}
           <option value="{{ aula.aula_capacitacion }}">{{ aula.aula_capacitacion }}</option>
-        {% endif %}
+        {% endif %}-->
       {% endfor %}
     </select>
   </form>
@@ -221,36 +222,29 @@ function guardar(){
       j=j+1;
     }    
   }
-
+  
   for(j=1;j<codigos.length;j++){
     //alert(codigos[j] + " " + asistencia[j]);
+    $('#loading2').show();
+    bloquear();  
+    $('#btn-save').attr('disabled','disabled');
+    $('#btn-edit').attr('disabled','disabled');
+    $('#btn-save2').attr('disabled','disabled');
+    $('#btn-edit2').attr('disabled','disabled');
     $.post(
       "{{ url_for(request.script_root+'.procesarJSON') }}",
       {"codigo":codigos[j],"observaciones":observaciones[j],"asistencia":asistencia[j],"option":'0'},
-       function(data){
+       function(data,status){
+        if(status === 'success'){
+          myFunction();
+        }
       }
     ).fail()   
   }
   //guardarObs();
-  bloquear();
-  alert("Espere un minuto hasta que se registre la asistencia.")
-  $('#loading2').show();
-  $('#btn-save').attr('disabled','disabled');
-  $('#btn-edit').attr('disabled','disabled');
-  $('#btn-save2').attr('disabled','disabled');
-  $('#btn-edit2').attr('disabled','disabled');
-  setTimeout(myFunction, 10000)
-}
 
-function exportar(){
-
-  $.get(
-    "{{ url_for(request.script_root+'.exportarExcelAsistencia') }}",
-    {},
-     function(data){
-          
-    }
-  ).fail()   
+  //alert("Espere un minuto hasta que se registre la asistencia.")
+  //setTimeout(myFunction, 10000)
 }
 
 $(document).ready(function() {
