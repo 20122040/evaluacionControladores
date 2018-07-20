@@ -168,7 +168,7 @@ def writeToControladores(writer,controladores_data,errores,opt=0):
       worksheet.write(row,9,aula_coord)
       row+=1
 
-def writeToBaseParaExportar(writer,coordinadores_data,controladores_data):
+def writeToBaseParaExportar(writer,coordinadores_data,controladores_data,errores):
   header = ['Código','Apellido Paterno','Apellido Materno','Nombres','Aula','Es coordinador','codigo Coordinador','Aula coordinación','Apoyo OCAI','Asistente OCAI']
   bold = writer.add_format({'bold': True})
 
@@ -233,17 +233,17 @@ def writeToBaseParaExportar(writer,coordinadores_data,controladores_data):
 
   row = 1
   for labor in coordinadores_data['LABOR']:
-    if(labor in ['COORDINADOR DE PISO','COORDINADORA DE PISO']):
+    if('COORDINADOR' in labor):
       worksheet.write(row,5,'VERDADERO') #Coord
       worksheet.write(row,8,'FALSO') #Apoyo
       worksheet.write(row,9,'FALSO') #Asistente
       codsCoord.append(str(coordinadores_data['Código'][row-1]).zfill(8))
       aulasCoord.append(coordinadores_data['AULA DE COORDINACIÓN'][row-1])
-    elif (labor == 'APOYO OCAI'):
+    elif ('APOYO' in labor):
       worksheet.write(row,5,'FALSO') #Coord
       worksheet.write(row,8,'VERDADERO') #Apoyo
       worksheet.write(row,9,'FALSO') #Asistente
-    elif (labor == 'ASISTENTE OCAI'):
+    elif ('ASISTENTE' in labor):
       worksheet.write(row,5,'FALSO') #Coord
       worksheet.write(row,8,'FALSO') #Apoyo
       worksheet.write(row,9,'VERDADERO') #Asistente

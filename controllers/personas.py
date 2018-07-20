@@ -13,7 +13,7 @@ import time
 #################################################################################
 
 def getPersonaSola(codigo):
-  query = Persona.query.filter_by(codigo=codigo).first()
+  query = Persona.query.filter_by(codigo=str(codigo).zfill(8)).first()
   return query
 
 def getCantidadPersonas():
@@ -23,6 +23,7 @@ def getCantidadControladores():
   return LaborPorProceso.query.count()
 
 def getPersonaEditar(codigo,proceso):
+  codigo = str(codigo).zfill(8)
   joinQuery = LaborPorProceso.query.join(Proceso,LaborPorProceso.idproceso==Proceso.idproceso)
   joinQuery = joinQuery.filter(
                 and_(LaborPorProceso.codigo == codigo,
@@ -36,6 +37,15 @@ def getControlador(codigo):
                 and_(LaborPorProceso.codigo == codigo,
                 Proceso.es_ultimo == 1)
               )              
+  return joinQuery.first()
+
+def getCoordinador(aula_coord,idproceso):
+  joinQuery = LaborPorProceso.query.join(Proceso,LaborPorProceso.idproceso==Proceso.idproceso)
+  joinQuery = joinQuery.filter(
+                and_(LaborPorProceso.idproceso == idproceso,
+                  LaborPorProceso.aula_coord == aula_coord,
+                  LaborPorProceso.es_coord == 1)
+              )
   return joinQuery.first()
 
 def obtenerControladorPorProceso(codigo,idproceso=0):

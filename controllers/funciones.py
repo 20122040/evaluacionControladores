@@ -88,7 +88,10 @@ def getReporteControladores(opt=0):
   return joinQuery
 
 def getAulas():
+  #En Postgres
   query = LaborPorProceso.query.join(Proceso,Proceso.idproceso == LaborPorProceso.idproceso).distinct(LaborPorProceso.aula_capacitacion).group_by(LaborPorProceso.aula_capacitacion,LaborPorProceso.id_lxp).filter(Proceso.es_ultimo == 1)
+  #En MySQL
+  #query = LaborPorProceso.query.join(Proceso,Proceso.idproceso == LaborPorProceso.idproceso).distinct(LaborPorProceso.aula_capacitacion).group_by(LaborPorProceso.aula_capacitacion).filter(Proceso.es_ultimo == 1)
   return query
 
 def getAsistentes():

@@ -48,6 +48,7 @@ def exportarExcelAsistencia():
     nombres=[]
     correos=[]
     aula=[]
+    labor=[]
     hora=[]
     asistio=[]
     obs=[]
@@ -68,7 +69,7 @@ def exportarExcelAsistencia():
     df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Labor PUCP','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
 
     file_name = "ReporteDeAsistencia-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
-    writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
+    #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
     writer = pd.ExcelWriter('static/reportes/'+file_name)
     df.to_excel(writer,sheet_name='Hoja 1',index=False)
     writer.save()
@@ -197,7 +198,9 @@ def getAulaCapacitacion(codigo,controladores_data,coordinadores_data):
   controladores_data['Código'] = controladores_data['Código'].astype(str)
   controladores_data['Código'] = controladores_data['Código'].apply(lambda x: x.zfill(8))
 
-  aula = coordinadores_data["CAPACITACIÓN"].loc[(controladores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]
+  codigo = str(codigo).zfill(8)
+  
+  aula = coordinadores_data["CAPACITACIÓN"].loc[(controladores_data["Código"].astype(str).apply(lambda x: x.zfill(8))==codigo)]  
   if (len(aula)!=0):
     return aula.values[0]
   else:
@@ -258,6 +261,81 @@ def añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select):
   #os.remove('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/' + arch_name)
   os.remove('downloaded_files/' + arch_name)
 
+def guardarReserva(reserva_data,errores,proceso_select):
+  row=1
+  for codigo in reserva_data['Código']:
+    nombres = reserva_data['Primer apellido'][row-1] + " " + reserva_data['Segundo apellido'][row-1] + ", " + reserva_data['Nombres'][row-1]
+    #Revisar si la persona ya existe o no
+    controladorR = personas.getPersonaSola(codigo);
+    if controladorR is None:
+      controladorR = Persona(str(codigo).zfill(8),nombres,'','',0,0)
+      db.session.add(controladorR)
+    else:
+      controladorR.nombres = nombres
+    db.session.commit()
+
+    #Agregando Labor_Por_Proceso
+    proceso = procesos.getProcesoPorId(proceso_select)
+    
+    aula = reserva_data['AULA'][row-1]
+    aula_coord = reserva_data['AULA DE COORDINACIÓN'][row-1]
+
+    #Esto aun no está listo desde aquí...
+    coordinador = personas.getCoordinador(aula_coord,proceso.idproceso)
+
+    new_controladorR = personas.getPersonaEditar(codigo,proceso.idproceso)
+
+    #Si ya hay un controlador registrado con ese código en ese proceso
+    if new_controladorR is not None:
+      new_controladorR.aula = aula
+      new_controladorR.aula_coord = aula_coord
+      new_controladorR.cod_coord = str(coordinador.codigo).zfill(8)
+      new_controladorR.es_coord = 0
+      new_controladorR.es_apoyo = 0
+      new_controladorR.es_asistente = 0
+    else:
+      lxp = LaborPorProceso(str(codigo).zfill(8),proceso.idproceso,0,0,0,aula,aula_coord,'',datetime.now().date(),datetime.now().date(),None,None,str(coordinador.codigo).zfill(8),'0','','','','')
+      db.session.add(lxp)  
+    db.session.commit()
+    row = row + 1
+    #print(codigo)
+
+@mod_evaluacion.route("/pantallaSubirReserva/",methods=['GET','POST'])
+def importarReserva():
+  proc = procesos.obtenerProcesos()
+  if request.method == 'GET':
+    #solo mostrar el formulario
+    errores = ['Descarga el formato de la base <a href="/static/formato/' + 'FORMATO CONTROLADORES DE RESERVA.xlsx' + '">Descargar el formato</a>']
+    return render_template("importarReserva.tpl.html",procesos=proc,messages=errores)
+  else:
+    #Si es POST entonces se subió un archivo
+    proceso_select = request.form['proceso-select']
+    procX = procesos.getProcesoPorId(proceso_select)
+    if 'archivos' in request.files:
+      files = request.files.to_dict(flat=False)['archivos']
+      for f in files:
+        if f and allowed_file(f.filename):
+          filename = secure_filename(f.filename)
+          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
+    folder = "uploaded_files/"
+    files = listdir(folder)
+
+    errores=[]
+    for file in files:
+      print("Leyendo: " + folder + file + "...\n")
+      reserva_data = pd.read_excel(folder + file,'CONTROLADORES')
+      #reserva_data
+    #print(reserva_data['Código'][0])
+    guardarReserva(reserva_data,errores,proceso_select)
+    #Se eliminan los archivos
+    for file in files:
+      if(file[file.find("."):] in [".xls",".xlsx"]):
+        os.remove(folder + file)
+    
+    return render_template('importar.tpl.html',procesos=proc,messages=errores)
+
 @mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
 def importar2():
   proc = procesos.obtenerProcesos()
@@ -304,8 +382,8 @@ def importar2():
       importar.writeToControladores(writer2,controladores_data,errores,0)
       worksheet = writer.add_worksheet('AULAS')
       worksheet = writer2.add_worksheet('AULAS')
-      importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data)
-      importar.writeToBaseParaExportar(writer2,coordinadores_data,controladores_data)
+      importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data,errores)
+      importar.writeToBaseParaExportar(writer2,coordinadores_data,controladores_data,errores)
       
     writer.close()
     writer2.close()
