@@ -432,7 +432,7 @@ def importar2():
       #if(len(files_base)!=0):
       #  os.remove('static/bases/' + arch_name)
       #writer = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/'+arch_name)
-      #writer2 = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/static/bases'+arch_name)
+      #writer2 = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/static/bases/'+arch_name)
       writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
       writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
