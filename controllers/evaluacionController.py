@@ -703,10 +703,13 @@ def evaluacion():
   apoyos = funciones.getApoyo()
   coordinadores = funciones.getCoordinadoresUltimoProceso()
   username_cookie = request.cookies.get('username')
-  userAndHash = username_cookie.split('|')
-  user = User.query.filter_by(user=userAndHash[0]).first()
-  if (user is not None):
-    admin = user.administrador
+  if(username_cookie):
+    userAndHash = username_cookie.split('|')
+    user = User.query.filter_by(user=userAndHash[0]).first()
+    if (user is not None):
+      admin = user.administrador
+    else:
+      admin = 0
   else:
     admin = 0
   return render_template("evaluacion.tpl.html",registros = reg,asistentes = asist, apoyos = apoyos,coordinadores = coordinadores, admin = admin)
@@ -719,11 +722,13 @@ def asistencia2():
   apoyo = funciones.getApoyo()
   aulas = funciones.getAulas()
   username_cookie = request.cookies.get('username')
-  #print(username_cookie)
-  userAndHash = username_cookie.split('|')
-  user = User.query.filter_by(user=userAndHash[0]).first()
-  if (user is not None):
-    admin = user.administrador
+  if(username_cookie):
+    userAndHash = username_cookie.split('|')
+    user = User.query.filter_by(user=userAndHash[0]).first()
+    if (user is not None):
+      admin = user.administrador
+    else:
+      admin = 0
   else:
     admin = 0
   return render_template("asistencia2.tpl.html",registros = reg,asistentes = asist,apoyos = apoyo,aulas = aulas,admin = admin)
