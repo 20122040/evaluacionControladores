@@ -8,83 +8,129 @@
 </style>
 {% endblock %}
 
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
+
 {% block content%}
 
 <!--agregar aqui el html -->
-<div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Regresar</a>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Labor por Proceso</h3>
+    </div>
+
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+
+     <div class="clearfix"></div>
+
+     <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Labor por Proceso <small>Editar</small></h2>
+          <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h3> Proceso: {{registro.nombre}} </h3>
+            <h3> Código PUCP: {{registro.codigo}} </h3>
+            <p id="codigo" style="display: none;">{{registro.codigo}}</p>
+            <p id="proceso" style="display: none;">{{registro.idproceso}}</p>
+            <form class="form-horizontal form-label-left" id="form-editar">
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Nombres y apellidos</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="name" class="form-control col-md-7 col-xs-12" value ="{{registro.nombres}}"  name="name" type="text">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="email">Correo PUCP</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="email" class="form-control col-md-7 col-xs-12" value ="{{registro.correo}}"  name="email" type="email">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="labor">Labor <span class="required">*</span></label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select id="labor" class="form-control">
+                    <option>CONTROLADOR</option>
+                    <option {% if registro.es_coord == 1 %} selected {% endif %}>COORDINADOR</option>
+                    <option {% if registro.es_asistente == 1 %} selected {% endif %}>ASISTENTE</option>
+                    <option {% if registro.es_apoyo == 1 %} selected {% endif %}>APOYO</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="aula">Aula </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="aula" class="form-control col-md-7 col-xs-12" value ="{{registro.aula}}"  name="aula" type="text">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="aula_coord">Aula de Coordinación</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="aula_coord" class="form-control col-md-7 col-xs-12" value ="{{registro.aula_coord}}"  name="aula_coord" type="text">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cod_coord">Código de Coordinador</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="cod_coord" class="form-control col-md-7 col-xs-12" value ="{{registro.cod_coord}}"  name="cod_coord" type="text">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="calificacion">Calificación <span class="required">*</span></label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select id="calificacion" class="form-control">
+                    <option>Seleccione</option>
+                    <option {% if registro.calificacion == "BUENO" %} selected {% endif %}>BUENO</option>
+                    <option {% if registro.calificacion == "REGULAR" %} selected {% endif %}>REGULAR</option>
+                    <option {% if registro.calificacion == "MALO" %} selected {% endif %}>MALO</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="obs_proceso">Observaciones </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <textarea id="obs_proceso" class="form-control" name="obs_proceso" data-parsley-trigger="keyup" data-parsley-maxlength="255" data-parsley-minlength-message="Come on! You need to enter at least a 20 caracters long comment.." data-parsley-validation-threshold="10">{{registro.obs_proceso}}</textarea>
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">Password </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="password" class="form-control col-md-7 col-xs-12" value ="{{registro.password}}"  name="password" type="text">
+                </div>
+              </div>
+
+              <div class="ln_solid"></div>
+
+              <div class="form-group">
+                <div class="col-md-6 col-md-offset-3">
+                  <a href="/reporte" class="btn btn-primary">Cancelar</a>
+                  <button id="send" type="submit" class="btn btn-success">Guardar</button>
+                </div>
+              </div>
+
+              <div class="loader" id="loading2" style="display: none; position: center;"></div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<h1>Editar Controlador</h1>
-    
-<h3> Proceso: {{registro.nombre}} </h3>
-<h3> Código PUCP: {{registro.codigo}} </h3>
-<p id="codigo" style="display: none;">{{registro.codigo}}</p>
-<p id="proceso" style="display: none;">{{registro.idproceso}}</p>
-<form class="pure-form pure-form-aligned" id="form-editar">
-  <fieldset>    
-    <div class="pure-control-group">
-      <label for="name">Nombres: </label>
-        <input id="name" type="text" placeholder="" value ="{{registro.nombres}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="email">Correo PUCP: </label>
-        <input id="email" type="text" placeholder="" value ="{{registro.correo}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-        <label for="labor">Labor: </label>
-        <select id="labor">
-            <option>CONTROLADOR</option>
-            <option {% if registro.es_coord == 1 %} selected {% endif %}>COORDINADOR</option>
-            <option {% if registro.es_asistente == 1 %} selected {% endif %}>ASISTENTE</option>
-            <option {% if registro.es_apoyo == 1 %} selected {% endif %}>APOYO</option>
-        </select>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="aula">Aula: </label>
-        <input id="aula" type="text" placeholder="" value ="{{registro.aula}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="aula_coord">Aula de Coordinación: </label>
-        <input id="aula_coord" type="text" placeholder="" value ="{{registro.aula_coord}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="cod_coord">Código de Coordinador: </label>
-        <input id="cod_coord" type="text" placeholder="" value ="{{registro.cod_coord}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="calificacion">Calificación: </label>
-        <select id="calificacion">
-            <option>Seleccione</option>
-            <option {% if registro.calificacion == "BUENO" %} selected {% endif %}>BUENO</option>
-            <option {% if registro.calificacion == "REGULAR" %} selected {% endif %}>REGULAR</option>
-            <option {% if registro.calificacion == "MALO" %} selected {% endif %}>MALO</option>
-        </select>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="obs_proceso">Observaciones: </label>
-        <textarea id="obs_proceso" class="pure-input-1-2">{{registro.obs_proceso}}</textarea>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="password">Password: </label>
-      <input id="password" type="text" value="{{registro.password}}" style="width: 25em;">
-    </div>
-
-    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
-    <div class="loader" id="loading2" style="display: none; position: center;"></div>
-  </fieldset>
-  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
-</form>
-
-
 {% endblock %}
 
 {% block scripts %}

@@ -14,26 +14,64 @@
 </div>
 {% endblock %}
 
-
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
 
 {% block content %}
-<div class="botones-cabecera" style="display: flex;">
+<!--div class="botones-cabecera" style="display: flex;">
   <div class="pure-u-1">
     <a class="pure-button" style="margin-top:5px;" id="reporte" href="/administrador/">Regresar</a>
   </div>
-</div>
+</div-->
 
-<h3>Elige el proceso</h3>
-<form id="export-form" method="post" class="pure-form pure-form-aligned" enctype="multipart/form-data">
-  <select name="proceso-select">
-      {% for proceso in procesos %}
-        {% if proceso %}
-          <option value="{{ proceso.idproceso }}" {% if proceso.es_ultimo %} selected="selected"{% endif %}>{{ proceso.nombre }}</option>
-        {% endif %}
-      {% endfor %}
-  </select>
-  <button type="submit" class="pure-button pure-button-primary"><span> Generar Excel</span></button>
-</form>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Exportar</h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2> Evaluación de Controladores <small>Exportar</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form id="export-form" method="post" class="form-horizontal form-label-left" enctype="multipart/form-data">
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="labor">Elige el Proceso <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <select class="form-control" name="proceso-select">
+                  {% for proceso in procesos %}
+                    {% if proceso %}
+                      <option value="{{ proceso.idproceso }}" {% if proceso.es_ultimo %} selected="selected"{% endif %}>{{ proceso.nombre }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="ln_solid"></div>
+
+            <div class="form-group">
+              <div class="col-md-6 col-md-offset-3">
+                <button id="send" type="submit" class="btn btn-success">Generar Excel</button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

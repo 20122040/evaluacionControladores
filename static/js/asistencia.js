@@ -63,6 +63,12 @@ function editar(){
   for(i=0;i<radio.length;i++){
     radio[i].disabled = false;
   }
+/*
+document.getElementById("MyElement").classList.add('MyClass');
+
+document.getElementById("MyElement").classList.remove('MyClass');
+*/
+
 	blockSaveEdit();
 }
 

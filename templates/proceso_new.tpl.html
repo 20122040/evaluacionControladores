@@ -8,49 +8,91 @@
 </style>
 {% endblock %}
 
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
+
 {% block content%}
 
-<!--agregar aqui el html -->
-<div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/proceso/">Regresar</a>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Procesos</h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+    <div class="clearfix"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Proceso <small>Nuevo</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form class="form-horizontal form-label-left" id="form-editar" novalidate>
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="idproceso">Código de Proceso: <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="idproceso" disabled class="form-control col-md-7 col-xs-12" maxlength="8" value="{{ cant + 1 }}" name="idproceso" required="required" type="text">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Nombre del Proceso: <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="name" class="form-control col-md-7 col-xs-12" name="name" required="required" type="text">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fecha_proc">Fecha del Proceso: <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="fecha_proc" class="form-control col-md-7 col-xs-12" name="fecha_proc" required="required" type="date">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="fecha_cap">Fecha de la Capacitación: </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="fecha_cap" class="form-control col-md-7 col-xs-12" name="fecha_cap" type="date">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="vigencia">¿Es vigente?</label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div id="vigencia" class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-default" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                      <input type="radio" name="vigencia" checked value="1"> Si
+                    </label>
+                    <label class="btn btn-primary" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                      <input type="radio" name="vigencia" value="0"> No
+                    </label>
+                  </div>
+              </div>
+            </div>
+
+            <div class="ln_solid"></div>
+
+            <div class="form-group">
+              <div class="col-md-6 col-md-offset-3">
+                <a href="/proceso" class="btn btn-primary">Cancelar</a>
+                <button id="send" type="submit" class="btn btn-success">Guardar</button>
+              </div>
+            </div>
+
+            <div class="loader" id="loading2" style="display: none; position: center;"></div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<h1>Nuevo Proceso</h1>
-    
-<form class="pure-form pure-form-aligned" id="form-editar">
-  <fieldset>  
-    <div class="pure-control-group">
-      <label for="idproceso">Código de Proceso: </label>
-        <input id="idproceso" type="text" placeholder="" style="width: 25em;" value="{{ cant + 1}}" readonly>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="name">Nombre del Proceso: </label>
-        <input id="name" type="text" placeholder="" style="width: 25em;" required>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="fecha_proc">Fecha del Proceso: </label>
-        <input id="fecha_proc" type="date" placeholder="" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="fecha_cap">Fecha de la Capacitación: </label>
-        <input id="fecha_cap" type="date" placeholder="" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="vigencia">¿Es vigente? </label>
-      <input type="radio" name="vigencia" value="1" checked> Si
-      <input type="radio" name="vigencia" value="0"> No
-    </div>
-
-    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
-    <div class="loader" id="loading2" style="display: none; position: center;"></div>
-  </fieldset>
-  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
-</form>
-
 
 {% endblock %}
 
@@ -77,24 +119,25 @@ $(document).ready(function(){
     var fecha_proc = $("#fecha_proc").val();
     var fecha_cap = $("#fecha_cap").val();
     //Inicia la carga y se muestra el loader
-    $('#loading2').show();
-    $.post(
-      "{{ url_for(request.script_root+'.procesarJSONNuevoProceso') }}",
-      {"idproceso":idproceso,"name":name,"vigencia":vigencia,"fecha_proc":fecha_proc,"fecha_cap":fecha_cap},
-      function(data,status){
-        //alert(status);
-        if(status==='success'){
-          //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
-          $('#loading2').hide();
-          window.location.href = "/proceso/";
-          return false;
+    if((name!='') && (fecha_proc!='')){
+      $('#loading2').show();
+      $.post(
+        "{{ url_for(request.script_root+'.procesarJSONNuevoProceso') }}",
+        {"idproceso":idproceso,"name":name,"vigencia":vigencia,"fecha_proc":fecha_proc,"fecha_cap":fecha_cap},
+        function(data,status){
+          //alert(status);
+          if(status==='success'){
+            //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
+            $('#loading2').hide();
+            window.location.href = "/proceso/";
+            return false;
+          }
+          //$('#loading2').show();
+          //setTimeout(myFunction, 5000);
         }
-        //$('#loading2').show();
-        //setTimeout(myFunction, 5000);
-      }
-    ).fail(requestError);
-    return false;
-
+      ).fail(requestError);
+      return false;
+    }
   });
 });
 </script>

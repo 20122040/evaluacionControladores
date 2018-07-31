@@ -1,15 +1,15 @@
 @font-face {
-    font-family: Helvetica;
+    font-family: "Helvetica Neue",Roboto,Arial,"Droid Sans",sans-serif;
     src: url("Helvetica.ttf");
 }
 @font-face {
-    font-family: Helvetica;
+    font-family: "Helvetica Neue",Roboto,Arial,"Droid Sans",sans-serif;
     src: url("Helvetica-Bold.ttf");
     font-weight: bold;
 }
 
 body {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue",Roboto,Arial,"Droid Sans",sans-serif;
 }
 body{
   background: rgba(43,43,41,1);
@@ -95,21 +95,8 @@ body{
   padding: 1px 2em;
   margin: 0.5em;
   margin-bottom: 0;
+  margin-top: 3em;
 }
-
-.button-success,
-.button-error,
-.button-warning,
-.button-secondary {
-  color: white;
-  border-radius: 4px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
-
-.button-success {
-  background: rgb(28, 184, 65); /* this is a green */
-}
-
 
 .loader {
   position: fixed;
@@ -138,6 +125,7 @@ body{
   z-index: 1000; 
 }
 
+/*
 .dataTables_paginate{
   position: relative;
   text-align: center;
@@ -168,7 +156,7 @@ body{
 .paginate_button:hover{
   background-color: gray;
 }
-
+*/
 @keyframes cdp-in {
   from {
     transform: scale(1.5);

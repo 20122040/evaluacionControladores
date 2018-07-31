@@ -14,36 +14,78 @@
 </div>
 {% endblock %}
 
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
 
 
 {% block content %}
-<div class="botones-cabecera" style="display: flex;">
+<!--div class="botones-cabecera" style="display: flex;">
   <div class="pure-u-1">
     <a class="pure-button" style="margin-top:5px;" id="reporte" href="/administrador/">Regresar</a>
   </div>
+</div-->
+
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Importar</h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2> Controladores y Coordinadores <small>Subir</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form id="file-form" method="post" enctype="multipart/form-data" class="form-horizontal form-label-left"-->
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="labor">Elige el Proceso <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <select class="form-control" name="proceso-select">
+                  {% for proceso in procesos %}
+                    {% if proceso %}
+                      <option value="{{ proceso.idproceso }}" {% if proceso.es_ultimo %} selected="selected"{% endif %}>{{ proceso.nombre }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="labor">Selecciona el archivo <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input class="col-md-7 col-xs-12" type="file" name="archivos" accept=".xls,.xlsx">
+              </div>
+            </div>
+
+            <div class="ln_solid"></div>
+
+            <div class="form-group">
+              <div class="col-md-6 col-md-offset-3">
+                <button id="send" type="submit" class="btn btn-success">Subir Excel</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<h2>Subir Archivo</h2>
-<form id="file-form" method="post" enctype="multipart/form-data" class="pure-form pure-form-aligned">
-  <div class="pure-control-group">
-    <select name="proceso-select">
-        {% for proceso in procesos %}
-          {% if proceso %}
-            <option value="{{ proceso.idproceso }}" {% if proceso.es_ultimo %} selected="selected"{% endif %}>{{ proceso.nombre }}</option>
-          {% endif %}
-        {% endfor %}
-    </select>
-  </div>
-  <div class="pure-control-group">
-    <input type="file" name="archivos" multiple="multiple" accept=".xls,.xlsx">
-  </div>
-  <button type="submit" class="pure-button pure-button-primary"><span> ENVIAR</span></button>
-</form>
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
 
+<script type="text/javascript">
+/*
 document.querySelector('#file-form input[type="file"]').addEventListener('change',e =>{
   e.preventDefault();
   e.stopPropagation();
@@ -66,6 +108,6 @@ document.querySelector('#file-form input[type="file"]').addEventListener('change
 document.querySelector('#file-form').addEventListener('submit',e=>{
   document.querySelector('.processing-files').classList.add('active');
 });
-
+*/
 </script> 
 {% endblock %}

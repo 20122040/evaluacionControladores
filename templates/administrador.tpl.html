@@ -3,104 +3,167 @@
 {% block title %} Evaluación Controladores {% endblock %}
 
 {% block styles %}
-<style>
-#lista-table_filter{
-  margin-top:1em;
-  margin-bottom:1em;
-}
-#lista-table_paging{
-  color:red;
-}
-</style>
+
+{% endblock %}
+
+{% block user %}
+<h2> Administrador </h2>
 {% endblock %}
 
 {% block content%}
 <!--agregar aqui el html -->
-<div class="botones-cabecera" style="display: flex;">
-  <div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de Examen</a>
-    <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
+<div class="">
+  <div class="page-title">
+  	<div class="title_left">
+    	<h3> Administrador</h3>
+    </div>
+    <div class="title_right">
+    	<div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+    	</div>
+  	</div>
   </div>
+  <div class="clearfix"></div>
+  <div class="row">
+  	<div class="col-md-12">
+  		<div class="x_panel">
+  			<div class="x_title">
+  				<h2>Administrador <small>Principal</small></h2>
+					<div class="clearfix"></div>
+  			</div>
+  			<div class="x_content">
+  				<div class="row">
+  					<!--Tarjetita-->
+  					<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/manager.svg">
+										<div class="mask">
+											<p> Personas </p>
+											<div class="tools tools-bottom">
+												<a href="/persona"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Tenemos registradas a {{ nPer }} personas</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/rectangles.svg">
+										<div class="mask">
+											<p> Procesos </p>
+											<div class="tools tools-bottom">
+												<a href="/proceso"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Tenemos registrados {{ nProc }} procesos</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/newspaper.svg">
+										<div class="mask">
+											<p> Labor por Proceso </p>
+											<div class="tools tools-bottom">
+												<a href="/reporte"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Tenemos registrados {{ nCont }} trabajadores en todos los procesos</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/inbox.svg">
+										<div class="mask">
+											<p> Subir Controladores </p>
+											<div class="tools tools-bottom">
+												<a href="/pantallaImportar"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Aquí se importará el Excel de Coordinadores y Controladores</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/icon.svg">
+										<div class="mask">
+											<p> Exportar Capacitación </p>
+											<div class="tools tools-bottom">
+												<a href="/exportarExcelAsistencia"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Aquí se exportará el Excel de asistencia a la capacitación</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/icon.svg">
+									<div class="mask">
+										<p> Exportar Evaluación </p>
+											<div class="tools tools-bottom">
+												<a href="/exportarExcelEvaluacion"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Aquí se exportará el Excel de evaluación de controladores durante el examen de admisión</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+						<!--Tarjetita-->
+						<div class="col-md-55">
+							<div class="thumbnail">
+								<div class="image view view-first">
+									<img src="/static/img/inbox.svg">
+										<div class="mask">
+											<p> Subir Reserva</p>
+											<div class="tools tools-bottom">
+												<a href="/pantallaSubirReserva"><i class="fa fa-link"></i></a>
+											</div>
+										</div>
+								</div>
+								<div class="caption" style="text-align: center;">
+									<p>Aquí se importará el Excel de controladores de reserva durante el examen de admisión</p>
+								</div>
+							</div>
+						</div>
+						<!--/Tarjetita-->
+ 					</div>
+ 				</div>
+ 			</div>
+ 		</div>
+ 	</div>
 </div>
-<h2>Vista de Administrador</h2>
-<div class="row dashboard-wrapper">
-	<div class="dashboard-card-wrapper">
-		<a class="card-text-link" href="/persona"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/manager.svg" class="menu-icon">
-	            <p class="number-data" id="number">{{ nPer }}</p>
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Personas</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/proceso"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/rectangles.svg" class="menu-icon">
-	            <p class="number-data" id="number">{{ nProc }}</p>
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Procesos</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/reporte"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/newspaper.svg" class="menu-icon">
-	            <p class="number-data" id="number">{{ nCont }}</p>
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Labor Por Proceso</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/pantallaImportar"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/inbox.svg" class="menu-icon">
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Subir Coordinadores y Controladores</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/exportarExcelAsistencia/"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/icon.svg" class="menu-icon">
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Exportar Reporte de Asistencia a Capacitación</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/exportarExcelEvaluacion/"> 
-			<div class="card is-card-square">
-	          <div class="same-row-items">
-	            <img src="/static/img/icon.svg" class="menu-icon">
-	          </div>
-	            <div class="same-row-items">
-	              <p class="card-name">Exportar Reporte de Evaluación en Examen de Admisión</p>
-	            </div>
-	        </div>
-		</a>
-		<a class="card-text-link" href="/pantallaSubirReserva/"> 
-			<div class="card is-card-square">
-	    	<div class="same-row-items">
-	     		<img src="/static/img/inbox.svg" class="menu-icon">
-	      </div>
-	      <div class="same-row-items">
-	        <p class="card-name">Subir Controladores de Reserva</p>
-	      </div>
-	    </div>
-		</a>
-	</div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}

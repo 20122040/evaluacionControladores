@@ -1,5 +1,24 @@
 from app import db
 
+class User(db.Model):
+  user = db.Column(db.String(255), primary_key=True)
+  password = db.Column(db.String(255))
+  administrador = db.Column(db.Integer)
+
+  def __init__(self, user, password, administrador):
+    self.user = user
+    self.password = password
+    self.administrador = administrador
+
+  def __repr__(self):
+    return '<User %r>' % self.user
+
+  def getAsDict(self, rel_level=0):
+    result={}
+    result["user"] = self.user
+    result["password"] = self.password
+    result["administrador"] = self.administrador
+
 class Persona(db.Model):
   codigo = db.Column(db.String(8), primary_key=True)
   nombres = db.Column(db.String(255))

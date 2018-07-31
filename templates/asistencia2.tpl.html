@@ -4,83 +4,120 @@
 
 {% block styles %}
 <style>
-#lista-table_filter{
-  margin-top:1em;
-  margin-bottom:1em;
-  display:none;
-}
+
 </style>
 {% endblock %}
 
 {% block content%}
+
+{% block user %}
+<h2>
+  {% if admin == 1 %}
+    Administrador
+  {% else %}
+    Coordinador
+  {% endif %}
+</h2>
+{% endblock %}
 <!--agregar aqui el html -->
-<div class="botones-cabecera" style="display: flex;">
-  <div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
-    <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de examen</a>
+<h1 style="display: none;" id="admin">{{ admin }}</h1>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3> Asistencia a la Capacitación</h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
   </div>
-</div>
-<h2>Asistencia a capacitación</h2>
-<div class="pure-u-1 pure-u-md-1-3 pure-form">
-  <form id="form-evaluacion">
-  	<label for="codigo">Aula de Capacitación: </label>
-    <!--input id="input-codigo" name="codigo" maxlength="8" autofocus/-->
-    <select id="cmb_aula" class="pure-input-1-2" onchange="filtrarTabla()">
-      <option value="Seleccione">Seleccione</option>
-      {% for aula in aulas %}
-        <option value="{{ aula.aula_capacitacion }}">{{ aula.aula_capacitacion }}</option>
-        <!--{% if aula %}
-          <option value="{{ aula.aula_capacitacion }}">{{ aula.aula_capacitacion }}</option>
-        {% endif %}-->
-      {% endfor %}
-    </select>
-  </form>
-  <h3 class="blue" id="numero" style="display: none"> </h3>
-</div>
-<div class="botones" id="botones" style ="display: none;">
-  <button id="btn-save" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
-  <button id="btn-edit" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
-</div>
-<div class="loader" id="loading2" style="display: none; position: center;"></div>
-<table id="lista-table" class="pure-table pure-table-bordered" style="display:none; width:100%">
-  <thead>
-    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow" style="display: none;">Aula</th><th id="table-arrow">Asistencia</th><th>Observaciones</th><th style="display:none;">Codigo Coordinador</th></tr>
-  <thead>
-  <tbody>
-    {% for reg in registros %}
-	    <tr class="registro">
-	    	<td>
-          {{ reg.nombres }}
-          <p style="display: none"> {{reg.es_coordinador}} </p>
-          <p style="display: none"> {{reg.es_apoyo}} </p>
-          <p style="display: none"> {{reg.es_asistente}} </p>
-        </td>
-	    	<td>{{ reg.codigo }}</td>
-	    	<td style="display: none;">{{ reg.aula_capacitacion }}</td>
-	    	<td style="text-align: center;">
-          <form class="pure-form" id="form-calificar">
-            <input id="option-asistencia" class="radio-asistencia" type="checkbox" value="asistio" disabled>
-          </form>
-          <p class="horas-controlador" style="display: none;">{{ reg.hora_capacitacion }}</p>
-        </td>
-        <td>
-          <form class="pure-form">
-            <textarea type = "text" id="text-obs" class= "text-obs" style="width:95%;" disabled="true" class="pure-input-1-2">{{ reg.obs_capacitacion }}</textarea>
-          </form>
-        </td>
-      	<td style="display:none;">{{ reg.cod_coord }}</td>
-	    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="botones" id="botones2" style ="display: none;">
-  <button id="btn-save2" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
-  <button id="btn-edit2" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Asistencia<small id="subtitle">Seleccionar</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form class="form-horizontal form-label-left" id="form-evaluacion">
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="cmb_aula">Aula de Capacitación <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <select id="cmb_aula" class="form-control" name="cmb_aula" onchange="filtrarTabla()">
+                  <option value="Seleccione">Seleccione</option>
+                  {% for aula in aulas %}
+                    <option value="{{ aula.aula_capacitacion }}">{{ aula.aula_capacitacion }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          <form>
+          <h3 class="blue" id="numero" style="display: none"> </h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 col-xs-12" style="display: none;" id="bloque-listado">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Listado<small id="subtitle">Marcar con un check</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div class="botones" id="botones">
+            <button id="btn-save" class="btn btn-primary" onclick="guardar()">Guardar</button>
+            <button id="btn-edit" class="btn btn-warning" onclick="editar()">Editar</button>
+          </div>
+          <div class="loader" id="loading2" style="display: none; position: center;"></div>
+          <table id="lista-table" class="table table-bordered">
+            <thead>
+              <tr class="headings">
+                <th>Nombres</th>
+                <th>Código</th>
+                <th style="display: none;">Aula</th>
+                <th>
+                  <label for="asistencia">Asistencia</label>
+                </th>
+                <th>Observaciones</th>
+                <th style="display:none;">Codigo Coordinador</th>
+              </tr>
+            <thead>
+            <tbody>
+              {% for reg in registros %}
+                <tr>
+                  <td>
+                    {{ reg.nombres }}
+                    <p style="display: none"> {{reg.es_coordinador}} </p>
+                    <p style="display: none"> {{reg.es_apoyo}} </p>
+                    <p style="display: none"> {{reg.es_asistente}} </p>
+                  </td>
+                  <td>{{ reg.codigo }}</td>
+                  <td style="display: none;">{{ reg.aula_capacitacion }}</td>
+                  <td class="a-center ">
+                    <input type="checkbox" class="radio-asistencia" value="asistio" disabled>
+                    <p class="horas-controlador" style="display: none;">{{ reg.hora_capacitacion }}</p>
+                  </td>
+                  <td>
+                      <textarea type = "text" id="text-obs" class= "form-control text-obs"  disabled="true">{{ reg.obs_capacitacion }}</textarea>
+                  </td>
+                  <td style="display:none;">{{ reg.cod_coord }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="botones" id="botones2">
+            <button id="btn-save2" class="btn btn-primary" onclick="guardar()">Guardar</button>
+            <button id="btn-edit2" class="btn btn-warning" onclick="editar()">Editar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='js/asistencia.js') }}" type="text/javascript"></script>
 
 <script>
@@ -92,8 +129,9 @@ function giveResponse(aula){
   //document.getElementById("export-button").style.display = "";
   document.getElementById("lista-table").style.display = "";
   //document.getElementById("botones").style.display = "";
-  document.getElementById("lista-table_filter").style.display = "block";
-  $("#cmb_aula").attr("disabled","disabled");
+  //document.getElementById("lista-table_filter").style.display = "block";
+  document.getElementById("cmb_aula").disabled = true;
+  //$("#cmb_aula").attr("disabled","disabled");
 }
 
 function inicializarTabla(){
@@ -167,8 +205,10 @@ function filtrarTabla(){
         }
       }
     } 
-    buttons.style.display = "";
-    buttons2.style.display = "";
+    document.getElementById("bloque-listado").style.display = '';
+    //buttons.style.display = "";
+    //buttons2.style.display = "";
+    document.getElementById("subtitle").innerHTML = 'Registro';
   }
 
   numero = document.getElementById("numero");
@@ -195,23 +235,17 @@ function guardar(){
       //Para obtener el valor del radio-button
       td = tr[i].getElementsByTagName("td")[3];
       if(td){
-        form = td.getElementsByTagName("form")[0];
-        if(form){
-          input = form.getElementsByTagName("input")[0];
-          if(input){
-            asistencia[j] = input.checked;
-          }
+        input = td.getElementsByTagName("input")[0];
+        if(input){
+          asistencia[j] = input.checked;
         }
       }
       //Para obtener las observaciones
       td = tr[i].getElementsByTagName("td")[4];
       if(td){
-        form = td.getElementsByTagName("form")[0];
-        if(form){
-          textarea = form.getElementsByTagName("textarea")[0];
-          if(textarea){
-            observaciones[j] = textarea.value;
-          }
+        textarea = td.getElementsByTagName("textarea")[0];
+        if(textarea){
+          observaciones[j] = textarea.value;
         }
       }
       //Para obtener el código
@@ -231,6 +265,7 @@ function guardar(){
     $('#btn-edit').attr('disabled','disabled');
     $('#btn-save2').attr('disabled','disabled');
     $('#btn-edit2').attr('disabled','disabled');
+    //alert(codigos[j] + ' ' + asistencia[j]);
     $.post(
       "{{ url_for(request.script_root+'.procesarJSON') }}",
       {"codigo":codigos[j],"observaciones":observaciones[j],"asistencia":asistencia[j],"option":'0'},
@@ -247,18 +282,28 @@ function guardar(){
   //setTimeout(myFunction, 10000)
 }
 
+function ocultarMostrarAdmin(){
+  a = document.getElementById("admin").innerHTML;
+  b = document.getElementById("admin-menu");
+  c = document.getElementById("admin-logout");
+  //alert(a);
+  if (a==1){
+    b.style.display = '';
+    c.style.display = '';
+  }else {
+    b.style.display = 'none'
+    c.style.display = 'none'
+  }
+}
+
 $(document).ready(function() {
+  /*
   $("#lista-table").DataTable({
-    "paging": false,
-    "info":false,
-        "language":{
-          "search": "Buscar: "
-        }
+  
   });
-
+  */
+  ocultarMostrarAdmin();
   inicializarTabla();
-
-  $("#lista-table_filter").addClass("pure-form");
 
 });
 

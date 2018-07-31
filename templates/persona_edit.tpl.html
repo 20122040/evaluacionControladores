@@ -8,39 +8,77 @@
 </style>
 {% endblock %}
 
-{% block content%}
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
 
-<!--agregar aqui el html -->
-<div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/persona/">Regresar</a>
+{% block content%}
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Personas</h3>
+    </div>
+
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+
+     <div class="clearfix"></div>
+
+     <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Personas <small>Editar</small></h2>
+          <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <h3> Código PUCP: {{registro.codigo}} </h3>
+            <p id="codigo" style="display: none;">{{registro.codigo}}</p>
+            <form class="form-horizontal form-label-left" id="form-editar" novalidate>
+              
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Nombres y apellidos</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="name" class="form-control col-md-7 col-xs-12" value ="{{registro.nombres}}"  name="name" type="text">
+                </div>
+              </div>
+            
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="email">Correo electrónico</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="email" class="form-control col-md-7 col-xs-12" value ="{{registro.correo}}"  name="email" type="email">
+                </div>
+              </div>
+
+              <div class="item form-group">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="tipo">Tipo de trabajador</label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <input id="tipo" class="form-control col-md-7 col-xs-12" value ="{{registro.tipoPersona}}" name="tipo" type="text">
+                </div>
+              </div>
+
+              <div class="ln_solid"></div>
+
+              <div class="form-group">
+                <div class="col-md-6 col-md-offset-3">
+                  <a href="/persona" class="btn btn-primary">Cancelar</a>
+                  <button id="send" type="submit" class="btn btn-success">Guardar</button>
+                </div>
+              </div>
+
+              <div class="loader" id="loading2" style="display: none; position: center;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+     </div>
+
+  </div>
 </div>
 
-<h1>Editar Persona</h1>
-<h3> Código PUCP: {{registro.codigo}} </h3>
-<p id="codigo" style="display: none;">{{registro.codigo}}</p>
-<form class="pure-form pure-form-aligned" id="form-editar">
-  <fieldset>    
-    <div class="pure-control-group">
-      <label for="name">Nombres: </label>
-        <input id="name" type="text" placeholder="" value ="{{registro.nombres}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="email">Correo PUCP: </label>
-        <input id="email" type="text" placeholder="" value ="{{registro.correo}}" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="tipo">Tipo trabajador: </label>
-        <input id="tipo" type="text" placeholder="" value ="{{registro.tipoPersona}}" style="width: 25em;">
-    </div>
-
-    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
-    <div class="loader" id="loading2" style="display: none; position: center;"></div>
-  </fieldset>
-  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
-</form>
-
+<!--agregar aqui el html -->
 
 {% endblock %}
 

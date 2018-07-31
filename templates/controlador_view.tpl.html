@@ -8,40 +8,102 @@
 </style>
 {% endblock %}
 
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
+
 {% block content%}
 <!--agregar aqui el html -->
-<div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/reporte/">Regresar</a>
+
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3> Labor por Proceso <small>Ver</small></h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Datos de Trabajador</h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <table class="table table-bordered">
+            <tbody>
+              <tr>
+                <th>Nombres</th>
+                <td>{{ registro.nombres }}</td>
+              </tr>
+              <tr>
+                <th>Código PUCP</th>
+                <td>{{ registro.codigo }}</td>
+              </tr>
+              <tr>
+                <th>Correo PUCP</th>
+                <td>{{ registro.correo }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Datos de Procesos</h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <table class="table table-bordered">
+            <thead>
+              <tr><th>Proceso</th><th>Labor</th><th>Calificación</th><th>Observaciones</th><th>¿Asistió?</th></tr>
+            <thead>
+            <tbody>
+              {% for proceso in procesos %}
+                <tr class="registro">
+                  <td> {{ proceso.nombre }} </td>
+                  {% if proceso.es_coord == 1 %}
+                    <td> COORDINADOR </td>
+                  {% elif proceso.es_asistente == 1 %}
+                    <td> ASISTENTE </td>
+                  {% elif proceso.es_apoyo == 1 %}
+                    <td> APOYO </td>
+                  {% else %}
+                    <td> CONTROLADOR </td>
+                  {% endif %}
+                  <td> {{ proceso.calificacion }} </td>
+                  <td> {{ proceso.obs_proceso }} </td>
+                  <td style="text-align: center;"> 
+                    {% if not proceso.hora_proceso %}
+                      <i class="fa fa-times" id="falto" style="color:red;"></i>
+                    {% else %}
+                      {% if proceso.hora_proceso == "" %}
+                        <i class="fa fa-times" id="falto" style="color:red;"></i>
+                      {% else %}
+                        <i class="fa fa-check" id="asistio" style="color:green;"></i>
+                      {% endif %}
+                    {% endif %}        
+                    <p style="display: none;">{{ proceso.hora_proceso}}</p>
+                  </td>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<h1>Ver Controlador</h1>
-<h3> Nombres: {{registro.nombres}} </h3>
-<h3> Código PUCP: {{registro.codigo}} </h3>
-<h3> Correo PUCP: {{registro.correo}} </h3>
-<table id="lista-table" class="pure-table pure-table-bordered" style="width:100%">
-  <thead>
-    <tr><th id="table-arrow">Proceso</th><th id="table-arrow">Calificación</th><th id="table-arrow">Observaciones</th><th id="table-arrow">¿Asistió?</th></tr>
-  <thead>
-  <tbody>
-    {% for proceso in procesos %}
-	    <tr class="registro">
-	    	<td> {{ proceso.nombre }} </td>
-        <td> {{ proceso.calificacion }} </td>
-        <td> {{ proceso.obs_proceso }} </td>
-        <td style="text-align: center;"> 
-          {% if not proceso.hora_proceso %}
-            <i class="fa fa-times" id="falto" style="color:red;"></i>
-          {% else %}
-            {% if proceso.hora_proceso == "" %}
-              <i class="fa fa-times" id="falto" style="color:red;"></i>
-            {% else %}
-              <i class="fa fa-check" id="asistio" style="color:green;"></i>
-            {% endif %}
-          {% endif %}        
-          <p style="display: none;">{{ proceso.hora_proceso}}</p>
-        </td>
-    {% endfor %}
-  </tbody>
-</table>
+
+
 {% endblock %}
 
 {% block scripts %}

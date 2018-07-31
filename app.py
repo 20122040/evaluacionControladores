@@ -15,6 +15,7 @@ app.config['DEBUG'] = True
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:admin@localhost:3306/evaluacionControlador'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@localhost:5432/evaluacionControlador'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SECRET_KEY'] = 'W31zXmCNBX3LGonY'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.jinja_env.filters['quote_plus'] = lambda u: quote_plus(u)
 db = SQLAlchemy(app)

@@ -8,44 +8,77 @@
 </style>
 {% endblock %}
 
+{% block user %}
+<h2> Administrador </h2>
+{% endblock %}
+
 {% block content%}
 
-<!--agregar aqui el html -->
-<div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="reporte" href="/persona/">Regresar</a>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3>Personas</h3>
+    </div>
+
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Personas <small>Nuevo</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form class="form-horizontal form-label-left" id="form-editar" novalidate>
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="codigoPUCP">Código PUCP <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="codigoPUCP" class="form-control col-md-7 col-xs-12" maxlength="8" name="codigoPUCP" required="required" type="text">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Nombres y apellidos <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="name" class="form-control col-md-7 col-xs-12" name="name" required="required" type="text">
+              </div>
+            </div>
+            
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="email">Correo electrónico</label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="email" class="form-control col-md-7 col-xs-12" name="email" type="email">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="tipo">Tipo de trabajador</label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="tipo" class="form-control col-md-7 col-xs-12" name="tipo" type="text">
+              </div>
+            </div>
+
+            <div class="ln_solid"></div>
+
+            <div class="form-group">
+              <div class="col-md-6 col-md-offset-3">
+                <a href="/persona" class="btn btn-primary">Cancelar</a>
+                <button id="send" type="submit" class="btn btn-success">Guardar</button>
+              </div>
+            </div>
+
+            <div class="loader" id="loading2" style="display: none; position: center;"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<h1>Nuevo Proceso</h1>
-    
-<form class="pure-form pure-form-aligned" id="form-editar">
-  <fieldset>  
-    <div class="pure-control-group">
-      <label for="idproceso">Código PUCP: </label>
-        <input id="codigoPUCP" type="text" placeholder="" style="width: 25em;" required="">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="name">Nombres y apellidos: </label>
-        <input id="name" type="text" placeholder="" style="width: 25em;" required>
-    </div>
-
-    <div class="pure-control-group">
-      <label for="email">Correo electrónico: </label>
-        <input id="email" type="email" placeholder="" style="width: 25em;">
-    </div>
-
-    <div class="pure-control-group">
-      <label for="tipo">Tipo de trabajador: </label>
-        <input id="tipo" type="text" placeholder="" style="width: 25em;">
-    </div>
-
-    <button type="submit" class="pure-button pure-button-primary" style="margin-left: auto; margin-right: auto; margin-top: 2em;display: block;">Guardar</button>
-    <div class="loader" id="loading2" style="display: none; position: center;"></div>
-  </fieldset>
-  <!--button type="submit" class="pure-button pure-button-primary" style="width: 10em;">Guardar</button-->
-</form>
-
-
 {% endblock %}
 
 {% block scripts %}
@@ -70,24 +103,25 @@ $(document).ready(function(){
     var email = $("#email").val();
     var tipo = $("#tipo").val();
     //Inicia la carga y se muestra el loader
-    $('#loading2').show();
-    $.post(
-      "{{ url_for(request.script_root+'.procesarJSONNuevoPersona') }}",
-      {"codigoPUCP":codigoPUCP,"name":name,"email":email,"tipo":tipo},
-      function(data,status){
-        //alert(status);
-        if(status==='success'){
-          //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
-          $('#loading2').hide();
-          window.location.href = "/persona/";
-          return false;
+    if((codigoPUCP!='') && (name!='')){
+      $('#loading2').show();
+      $.post(
+        "{{ url_for(request.script_root+'.procesarJSONNuevoPersona') }}",
+        {"codigoPUCP":codigoPUCP,"name":name,"email":email,"tipo":tipo},
+        function(data,status){
+          //alert(status);
+          if(status==='success'){
+            //De lograrse grabar con éxito solo oculta el loader y regresa a la pantalla principal.
+            $('#loading2').hide();
+            window.location.href = "/persona/";
+            return false;
+          }
+          //$('#loading2').show();
+          //setTimeout(myFunction, 5000);
         }
-        //$('#loading2').show();
-        //setTimeout(myFunction, 5000);
-      }
-    ).fail(requestError);
-    return false;
-
+      ).fail(requestError);
+      return false;
+    }
   });
 });
 </script>

@@ -5,13 +5,15 @@ import os
 import xlsxwriter
 import pandas as pd
 import math
+import bcrypt
+from urllib.parse import quote_plus
 #import xlrd
 
 from flask import Flask, request, render_template, Blueprint, redirect, url_for
 from os import listdir
 from os.path import isfile, join
 from werkzeug.utils import secure_filename
-from models.Controlador import Persona, Proceso, LaborPorProceso
+from models.Controlador import Persona, Proceso, LaborPorProceso, User
 from controllers import funciones, reportes, procesos, personas, importar
 from datetime import datetime
 from app import db
@@ -22,7 +24,52 @@ mod_evaluacion = Blueprint('evaluacion', __name__)
 
 @mod_evaluacion.route("/")
 def example():
+  #print(validate_login(request))
   return "Evaluación Controladores"
+
+def validate_login(request):
+  username_cookie = request.cookies.get('username')
+  #print(username_cookie)
+  if (username_cookie is None) or (username_cookie == ''):
+    return False
+  
+  userAndHash = username_cookie.split('|')
+  if len(userAndHash) != 2:
+    return False
+
+  if not bcrypt.checkpw((userAndHash[0]+ app.config['SECRET_KEY']).encode('utf-8'),userAndHash[1].encode('utf-8')):
+    return False
+
+  return True
+
+@mod_evaluacion.route('/login',methods=['GET','POST'])
+def login():
+  if request.method == 'GET':
+    return render_template('login.tpl.html')
+  else:
+    destination = request.args.get('dest', '/')
+    username = request.form['username']
+    password = request.form['password']
+
+    user = User.query.filter_by(user=username).first()
+
+    if user is not None:
+      #userSecret =(password + app.config['SECRET_KEY']).encode('utf-8')
+      upass = user.password
+      #print(upass)
+      #if bcrypt.checkpw(userSecret,upass.encode('utf-8')): 
+      if (password == upass):
+        resp = redirect(destination)
+        hashed = bcrypt.hashpw((username+ app.config['SECRET_KEY']).encode('utf-8'),bcrypt.gensalt())
+        resp.set_cookie('username',username+'|'+ hashed.decode('utf-8'))
+        return resp
+    return render_template('login.tpl.html',messages=['El usuario y/o la contraseña son incorrectos'])
+
+@mod_evaluacion.route('/logout',methods=['GET'])
+def logout():
+  resp = redirect('/login')
+  resp.set_cookie('username','')
+  return resp
 
 def quitarEspacios(cadena):
   cadena = cadena.replace(' ','')
@@ -36,138 +83,150 @@ def quitarEspacios(cadena):
 
 @mod_evaluacion.route("/exportarExcelAsistencia/",methods=['GET','POST'])
 def exportarExcelAsistencia():
-  proc = procesos.obtenerProcesos()
-  if request.method == 'GET':
-    return render_template('exportar_capacitacion.tpl.html',procesos=proc)
-  else:
-    proceso_select = request.form['proceso-select']
-    #print("Este es el select " + str(proceso_select))
-    resultados = reportes.getReporteAsistencia(proceso_select)
-    procX = procesos.getProcesoPorId(proceso_select)
-    codigos=[]
-    nombres=[]
-    correos=[]
-    aula=[]
-    labor=[]
-    hora=[]
-    asistio=[]
-    obs=[]
-    column_names = ['codigo', 'nombres','correo','LaborPUCP','aula_capacitacion','hora_capacitacion','obs_capacitacion']
-    for res in resultados:
-      codigos.append(res.codigo)
-      nombres.append(res.nombres)
-      correos.append(res.correo)
-      labor.append(res.tipoPersona)
-      aula.append(res.aula_capacitacion)
-      hora.append(res.hora_capacitacion)
-      if(res.hora_capacitacion is not None):
-        asistio.append("SI")
-      else:
-        asistio.append("NO")
-      obs.append(res.obs_capacitacion)
-    d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'LaborPUCP':labor,'Aula de Capacitación': aula, 'Hora Capacitación':hora, '¿Asistió?':asistio, 'Observaciones': obs} 
-    df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Labor PUCP','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
+  if (validate_login(request)):
+    proc = procesos.obtenerProcesos()
+    if request.method == 'GET':
+      return render_template('exportar_capacitacion.tpl.html',procesos=proc)
+    else:
+      proceso_select = request.form['proceso-select']
+      #print("Este es el select " + str(proceso_select))
+      resultados = reportes.getReporteAsistencia(proceso_select)
+      procX = procesos.getProcesoPorId(proceso_select)
+      codigos=[]
+      nombres=[]
+      correos=[]
+      aula=[]
+      labor=[]
+      hora=[]
+      asistio=[]
+      obs=[]
+      column_names = ['codigo', 'nombres','correo','LaborPUCP','aula_capacitacion','hora_capacitacion','obs_capacitacion']
+      for res in resultados:
+        codigos.append(res.codigo)
+        nombres.append(res.nombres)
+        correos.append(res.correo)
+        labor.append(res.tipoPersona)
+        aula.append(res.aula_capacitacion)
+        hora.append(res.hora_capacitacion)
+        if(res.hora_capacitacion is not None):
+          asistio.append("SI")
+        else:
+          asistio.append("NO")
+        obs.append(res.obs_capacitacion)
+      d = {'Código': codigos, 'Nombres': nombres, 'Correo':correos, 'LaborPUCP':labor,'Aula de Capacitación': aula, 'Hora Capacitación':hora, '¿Asistió?':asistio, 'Observaciones': obs} 
+      df = pd.DataFrame(data=d,columns=['Código','Nombres','Correo','Labor PUCP','Aula de Capacitación','Hora Capacitación','¿Asistió?','Observaciones'])
 
-    file_name = "ReporteDeAsistencia-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
-    #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
-    writer = pd.ExcelWriter('static/reportes/'+file_name)
-    df.to_excel(writer,sheet_name='Hoja 1',index=False)
-    writer.save()
-    m = ['Descargar reporte de asistencia a capacitación, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
-    return render_template('exportar_capacitacion.tpl.html',procesos=proc,messages=m)
+      file_name = "ReporteDeAsistencia-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+      #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
+      writer = pd.ExcelWriter('static/reportes/'+file_name)
+      df.to_excel(writer,sheet_name='Hoja 1',index=False)
+      writer.save()
+      m = ['Descargar reporte de asistencia a capacitación, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
+      return render_template('exportar_capacitacion.tpl.html',procesos=proc,messages=m)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route("/exportarExcelEvaluacion/",methods=['GET','POST'])
 def exportarExcelEvaluacion():
-  proc = procesos.obtenerProcesos()
-  if request.method == 'GET':
-    return render_template('exportar_evaluacion.tpl.html',procesos=proc)
+  if (validate_login(request)):
+    proc = procesos.obtenerProcesos()
+    if request.method == 'GET':
+      return render_template('exportar_evaluacion.tpl.html',procesos=proc)
+    else:
+      proceso_select = request.form['proceso-select']
+      resultados = reportes.getReporteEvaluacion(proceso_select)
+      procX = procesos.getProcesoPorId(proceso_select)
+      codigos=[]
+      nombres=[]
+      correos=[]
+      labor=[]
+      proceso_names=[]
+      es_coord=[]
+      es_apoyo=[]
+      es_asistente=[]
+      aulas=[]
+      aulas_coord=[]
+      fechas=[]
+      codigos_coord=[]
+      calificaciones=[]
+      observaciones=[]
+      asistio=[]
+      asistio_cap=[]
+      for res in resultados:
+        codigos.append(res.codigo)
+        nombres.append(res.nombres)
+        correos.append(res.correo)
+        labor.append(res.tipoPersona)
+        proceso_names.append(res.nombre)
+        if(res.es_coord == 1):
+          es_coord.append("VERDADERO")
+          es_asistente.append("FALSO")
+          es_apoyo.append("FALSO")
+        elif(res.es_apoyo == 1):
+          es_coord.append("FALSO")
+          es_asistente.append("FALSO")
+          es_apoyo.append("VERDADERO")
+        elif(res.es_asistente == 1):
+          es_coord.append("FALSO")
+          es_asistente.append("VERDADERO")
+          es_apoyo.append("FALSO")
+        else:
+          es_coord.append("FALSO")
+          es_asistente.append("FALSO")
+          es_apoyo.append("FALSO")
+        aulas.append(res.aula)
+        aulas_coord.append(res.aula_coord)
+        if(res.hora_proceso is not None):
+          asistio.append("SI")
+        else:
+          asistio.append("NO")
+        if(res.calificacion == '0'):
+          calificaciones.append("-")
+        else: 
+          calificaciones.append(res.calificacion)
+        observaciones.append(res.obs_proceso)
+        fechas.append(res.fecha)
+        codigos_coord.append(res.cod_coord)
+        if(res.hora_capacitacion is not None):
+          asistio_cap.append("SI")
+        else:
+          asistio_cap.append("NO")
+
+
+      d = {'Codigo': codigos, 'Nombres': nombres, 'Correo':correos, 'Labor PUCP':labor, 'Proceso':proceso_names, 'Es Coordinador':es_coord, 'Es Apoyo':es_apoyo, 
+      'Es Asistente':es_asistente, 'Aula': aulas, 'Aula de Coordinacion':aulas_coord, 'Fecha del Proceso':fechas, 'Asistio al proceso':asistio, 
+      'Asistio a la capacitacion':asistio_cap, 'Codigo de Coordinador':codigos_coord, 'Calificacion':calificaciones, 'Observaciones':observaciones} 
+      df = pd.DataFrame(data=d,columns=['Codigo','Nombres','Correo','Labor PUCP','Proceso','Es Coordinador','Es Apoyo','Es Asistente','Aula',
+        'Aula de Coordinacion','Fecha del Proceso','Asistio al proceso','Asistio a la capacitacion','Codigo de Coordinador',
+        'Calificacion','Observaciones'])
+    
+      file_name = "EvaluacionDeColaboradores-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
+      #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
+      writer = pd.ExcelWriter('static/reportes/'+file_name)
+      df.to_excel(writer,sheet_name='Hoja 1',index=False)
+      writer.save()
+      m = ['Descargar reporte de evaluación de controladores, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
+      return render_template('exportar_evaluacion.tpl.html',procesos=proc,messages=m)
   else:
-    proceso_select = request.form['proceso-select']
-    resultados = reportes.getReporteEvaluacion(proceso_select)
-    procX = procesos.getProcesoPorId(proceso_select)
-    codigos=[]
-    nombres=[]
-    correos=[]
-    labor=[]
-    proceso_names=[]
-    es_coord=[]
-    es_apoyo=[]
-    es_asistente=[]
-    aulas=[]
-    aulas_coord=[]
-    fechas=[]
-    codigos_coord=[]
-    calificaciones=[]
-    observaciones=[]
-    asistio=[]
-    asistio_cap=[]
-    for res in resultados:
-      codigos.append(res.codigo)
-      nombres.append(res.nombres)
-      correos.append(res.correo)
-      labor.append(res.tipoPersona)
-      proceso_names.append(res.nombre)
-      if(res.es_coord == 1):
-        es_coord.append("VERDADERO")
-        es_asistente.append("FALSO")
-        es_apoyo.append("FALSO")
-      elif(res.es_apoyo == 1):
-        es_coord.append("FALSO")
-        es_asistente.append("FALSO")
-        es_apoyo.append("VERDADERO")
-      elif(res.es_asistente == 1):
-        es_coord.append("FALSO")
-        es_asistente.append("VERDADERO")
-        es_apoyo.append("FALSO")
-      else:
-        es_coord.append("FALSO")
-        es_asistente.append("FALSO")
-        es_apoyo.append("FALSO")
-      aulas.append(res.aula)
-      aulas_coord.append(res.aula_coord)
-      if(res.hora_proceso is not None):
-        asistio.append("SI")
-      else:
-        asistio.append("NO")
-      if(res.calificacion == '0'):
-        calificaciones.append("-")
-      else: 
-        calificaciones.append(res.calificacion)
-      observaciones.append(res.obs_proceso)
-      fechas.append(res.fecha)
-      codigos_coord.append(res.cod_coord)
-      if(res.hora_capacitacion is not None):
-        asistio_cap.append("SI")
-      else:
-        asistio_cap.append("NO")
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
-
-    d = {'Codigo': codigos, 'Nombres': nombres, 'Correo':correos, 'Labor PUCP':labor, 'Proceso':proceso_names, 'Es Coordinador':es_coord, 'Es Apoyo':es_apoyo, 
-    'Es Asistente':es_asistente, 'Aula': aulas, 'Aula de Coordinacion':aulas_coord, 'Fecha del Proceso':fechas, 'Asistio al proceso':asistio, 
-    'Asistio a la capacitacion':asistio_cap, 'Codigo de Coordinador':codigos_coord, 'Calificacion':calificaciones, 'Observaciones':observaciones} 
-    df = pd.DataFrame(data=d,columns=['Codigo','Nombres','Correo','Labor PUCP','Proceso','Es Coordinador','Es Apoyo','Es Asistente','Aula',
-      'Aula de Coordinacion','Fecha del Proceso','Asistio al proceso','Asistio a la capacitacion','Codigo de Coordinador',
-      'Calificacion','Observaciones'])
-  
-    file_name = "EvaluacionDeColaboradores-" + quitarEspacios(procX.nombre) + "(" + datetime.now().strftime('%d-%m-%Y-%H_%M_%S') + ").xlsx"
-    #writer = pd.ExcelWriter('/var/www/asistenciaControladores/asistenciaPucp/static/reportes/'+file_name)
-    writer = pd.ExcelWriter('static/reportes/'+file_name)
-    df.to_excel(writer,sheet_name='Hoja 1',index=False)
-    writer.save()
-    m = ['Descargar reporte de evaluación de controladores, <a href="/static/reportes/'+ file_name +'">Descargar</a>']
-    return render_template('exportar_evaluacion.tpl.html',procesos=proc,messages=m)
-
-@mod_evaluacion.route("/exportarExcelReporte/",methods=['GET'])
-def exportarExcelReporte():
-  resultados = reportes.getReporte()
-  column_names = ['codigo', 'nombres', 'nombre','calificacion','obs_proceso','nro_convocatorias','nro_asistencias','correo']
-  return excel.make_response_from_query_sets(resultados, column_names, "xls",file_name="ReporteGeneral")
-
-@mod_evaluacion.route("/reporte/")
+@mod_evaluacion.route("/reporte/", methods=['GET','POST'])
 def reporte():
-  #actualizarDatos()
-  reg = funciones.getReporteControladores()
-  return render_template("reporte.tpl.html",registros = reg)
+  if (validate_login(request)):
+    #actualizarDatos()
+    if request.method == 'GET':
+      reg = funciones.getReporteControladores()
+      return render_template("reporte.tpl.html",registros = reg)
+    else:
+      codigo = request.form.get('codigo', '')
+      idproceso = request.form.get('idproceso', '')
+      cont = personas.getPersonaEditar(codigo,idproceso)
+      db.session.delete(cont)
+      db.session.commit()
+      reg = funciones.getReporteControladores()
+      return render_template("reporte.tpl.html",registros = reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -302,102 +361,111 @@ def guardarReserva(reserva_data,errores,proceso_select):
 
 @mod_evaluacion.route("/pantallaSubirReserva/",methods=['GET','POST'])
 def importarReserva():
-  proc = procesos.obtenerProcesos()
-  if request.method == 'GET':
-    #solo mostrar el formulario
-    errores = ['Descarga el formato de la base <a href="/static/formato/' + 'FORMATO CONTROLADORES DE RESERVA.xlsx' + '">Descargar el formato</a>']
-    return render_template("importarReserva.tpl.html",procesos=proc,messages=errores)
+  if (validate_login(request)):
+    proc = procesos.obtenerProcesos()
+    if request.method == 'GET':
+      #solo mostrar el formulario
+      errores = ['Descarga el formato de la base <a href="/static/formato/' + 'FORMATO CONTROLADORES DE RESERVA.xlsx' + '">Descargar el formato</a>']
+      return render_template("importarReserva.tpl.html",procesos=proc,messages=errores)
+    else:
+      #Si es POST entonces se subió un archivo
+      proceso_select = request.form['proceso-select']
+      procX = procesos.getProcesoPorId(proceso_select)
+      if 'archivos' in request.files:
+        files = request.files.to_dict(flat=False)['archivos']
+        for f in files:
+          if f and allowed_file(f.filename):
+            filename = secure_filename(f.filename)
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+      #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
+      folder = "uploaded_files/"
+      files = listdir(folder)
+
+      errores=[]
+      for file in files:
+        print("Leyendo: " + folder + file + "...\n")
+        reserva_data = pd.read_excel(folder + file,'CONTROLADORES')
+        #reserva_data
+      #print(reserva_data['Código'][0])
+      guardarReserva(reserva_data,errores,proceso_select)
+      #Se eliminan los archivos
+      for file in files:
+        if(file[file.find("."):] in [".xls",".xlsx"]):
+          os.remove(folder + file)
+
+      if len(errores)==0:
+        errores.append('Se importó con éxito a los controladores de reserva')
+      
+      return render_template('importar.tpl.html',procesos=proc,messages=errores)
   else:
-    #Si es POST entonces se subió un archivo
-    proceso_select = request.form['proceso-select']
-    procX = procesos.getProcesoPorId(proceso_select)
-    if 'archivos' in request.files:
-      files = request.files.to_dict(flat=False)['archivos']
-      for f in files:
-        if f and allowed_file(f.filename):
-          filename = secure_filename(f.filename)
-          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-    #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
-    folder = "uploaded_files/"
-    files = listdir(folder)
-
-    errores=[]
-    for file in files:
-      print("Leyendo: " + folder + file + "...\n")
-      reserva_data = pd.read_excel(folder + file,'CONTROLADORES')
-      #reserva_data
-    #print(reserva_data['Código'][0])
-    guardarReserva(reserva_data,errores,proceso_select)
-    #Se eliminan los archivos
-    for file in files:
-      if(file[file.find("."):] in [".xls",".xlsx"]):
-        os.remove(folder + file)
-    
-    return render_template('importar.tpl.html',procesos=proc,messages=errores)
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route("/pantallaImportar",methods=['GET','POST'])
 def importar2():
-  proc = procesos.obtenerProcesos()
-  if request.method == 'GET':
-    #solo mostrar el formulario
-    errores = ['Descarga el formato de la base, <a href="/static/formato/'+ 'FORMATO LISTA CONTROLADORES Y COORDINADORES.xlsx' +'">Descargar el formato</a>']
-    return render_template("importar.tpl.html",procesos=proc,messages=errores)
-  else:
-    #Si es POST entonces se subió un archivo
-    proceso_select = request.form['proceso-select']
-    procX = procesos.getProcesoPorId(proceso_select)
-    if 'archivos' in request.files: #verificar si se selecciono archivos
-      files = request.files.to_dict(flat=False)['archivos']
-      for f in files:
-        if f and allowed_file(f.filename): #verificar que se subio xls o xlsx
-          filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
-          f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
-    #Se procesan los archivos
-    #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
-    folder = "uploaded_files/"
-    files = listdir(folder)
+  if (validate_login(request)):
+    proc = procesos.obtenerProcesos()
+    if request.method == 'GET':
+      #solo mostrar el formulario
+      errores = ['Descarga el formato de la base, <a href="/static/formato/'+ 'FORMATO LISTA CONTROLADORES Y COORDINADORES.xlsx' +'">Descargar el formato</a>']
+      return render_template("importar.tpl.html",procesos=proc,messages=errores)
+    else:
+      #Si es POST entonces se subió un archivo
+      proceso_select = request.form['proceso-select']
+      procX = procesos.getProcesoPorId(proceso_select)
+      if 'archivos' in request.files: #verificar si se selecciono archivos
+        files = request.files.to_dict(flat=False)['archivos']
+        for f in files:
+          if f and allowed_file(f.filename): #verificar que se subio xls o xlsx
+            filename = secure_filename(f.filename) #crear nombre seguro para evitar XSS
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #guardar el archivo
+      #Se procesan los archivos
+      #folder = "/var/www/asistenciaControladores/asistenciaPucp/uploaded_files/"
+      folder = "uploaded_files/"
+      files = listdir(folder)
 
-    arch_name = 'BaseParaAccess' + quitarEspacios(procX.nombre) + '.xlsx'
-    #arch_name.replace(' ','_')
-    #folder_base = "/var/www/asistenciaControladores/asistenciaPucp/static/bases/"
-    folder_base = "static/bases/"
-    files_base = listdir(folder_base)
-    #if(len(files_base)!=0):
-    #  os.remove('static/bases/' + arch_name)
-    #writer = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/'+arch_name)
-    #writer2 = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/static/bases'+arch_name)
-    writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
-    writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
+      arch_name = 'BaseParaAccess' + quitarEspacios(procX.nombre) + '.xlsx'
+      #arch_name.replace(' ','_')
+      #folder_base = "/var/www/asistenciaControladores/asistenciaPucp/static/bases/"
+      folder_base = "static/bases/"
+      files_base = listdir(folder_base)
+      #if(len(files_base)!=0):
+      #  os.remove('static/bases/' + arch_name)
+      #writer = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/downloaded_files/'+arch_name)
+      #writer2 = xlsxwriter.Workbook('/var/www/asistenciaControladores/asistenciaPucp/static/bases'+arch_name)
+      writer = xlsxwriter.Workbook('downloaded_files/'+arch_name)
+      writer2 = xlsxwriter.Workbook('static/bases/'+arch_name)
 
-    errores=[]
-    for file in files:
-      print("Leyendo: " + folder + file + "...\n")
-      coordinadores_data = pd.read_excel(folder + file,'COORDINADORES')
-      #print(coordinadores_data)
-      controladores_data = pd.read_excel(folder + file,'CONTROLADORES')
-      importar.writeToCoordinadores(writer,coordinadores_data,errores,1)
-      importar.writeToControladores(writer,controladores_data,errores,1)
-      importar.writeToCoordinadores(writer2,coordinadores_data,errores,0)
-      importar.writeToControladores(writer2,controladores_data,errores,0)
-      worksheet = writer.add_worksheet('AULAS')
-      worksheet = writer2.add_worksheet('AULAS')
-      importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data,errores)
-      importar.writeToBaseParaExportar(writer2,coordinadores_data,controladores_data,errores)
+      errores=[]
+      for file in files:
+        print("Leyendo: " + folder + file + "...\n")
+        coordinadores_data = pd.read_excel(folder + file,'COORDINADORES')
+        #print(coordinadores_data)
+        controladores_data = pd.read_excel(folder + file,'CONTROLADORES')
+        importar.writeToCoordinadores(writer,coordinadores_data,errores,1)
+        importar.writeToControladores(writer,controladores_data,errores,1)
+        importar.writeToCoordinadores(writer2,coordinadores_data,errores,0)
+        importar.writeToControladores(writer2,controladores_data,errores,0)
+        worksheet = writer.add_worksheet('AULAS')
+        worksheet = writer2.add_worksheet('AULAS')
+        importar.writeToBaseParaExportar(writer,coordinadores_data,controladores_data,errores)
+        importar.writeToBaseParaExportar(writer2,coordinadores_data,controladores_data,errores)
+        
+      writer.close()
+      writer2.close()
+
+      #Se eliminan los archivos
+      for file in files:
+        if(file[file.find("."):] in [".xls",".xlsx"]):
+          os.remove(folder + file)
       
-    writer.close()
-    writer2.close()
-
-    #Se eliminan los archivos
-    for file in files:
-      if(file[file.find("."):] in [".xls",".xlsx"]):
-        os.remove(folder + file)
-    
-    if (len(errores)==0):
-      añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select)
-      #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>'
-      errores.append(['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>'])
-    return render_template('importar.tpl.html',procesos=proc,messages=errores)
+      if (len(errores)==0):
+        añadirBD(arch_name,controladores_data,coordinadores_data,proceso_select)
+        #errores = ['Desde aquí puede descargar la base para access, <a href="/downloaded_files/'+ arch_name +'">Descargar base para access</a>'
+        errores.append(['Desde aquí puede descargar la base para access, <a href="/static/bases/'+ arch_name +'">Descargar base para access</a>'])
+      return render_template('importar.tpl.html',procesos=proc,messages=errores)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route("/procesarJSON/",methods=["POST"])
 def procesarJSON():
@@ -634,7 +702,15 @@ def evaluacion():
   asist = funciones.getAsistentes()
   apoyos = funciones.getApoyo()
   coordinadores = funciones.getCoordinadoresUltimoProceso()
-  return render_template("evaluacion.tpl.html",registros = reg,asistentes = asist, apoyos = apoyos,coordinadores = coordinadores)
+  username_cookie = request.cookies.get('username')
+  userAndHash = username_cookie.split('|')
+  user = User.query.filter_by(user=userAndHash[0]).first()
+  if (user is not None):
+    admin = user.administrador
+  else:
+    admin = 0
+  return render_template("evaluacion.tpl.html",registros = reg,asistentes = asist, apoyos = apoyos,coordinadores = coordinadores, admin = admin)
+
 
 @mod_evaluacion.route("/asistencia/")
 def asistencia2():
@@ -642,80 +718,131 @@ def asistencia2():
   asist = funciones.getAsistentes()
   apoyo = funciones.getApoyo()
   aulas = funciones.getAulas()
-  return render_template("asistencia2.tpl.html",registros = reg,asistentes = asist,apoyos = apoyo,aulas = aulas)
+  username_cookie = request.cookies.get('username')
+  #print(username_cookie)
+  userAndHash = username_cookie.split('|')
+  user = User.query.filter_by(user=userAndHash[0]).first()
+  if (user is not None):
+    admin = user.administrador
+  else:
+    admin = 0
+  return render_template("asistencia2.tpl.html",registros = reg,asistentes = asist,apoyos = apoyo,aulas = aulas,admin = admin)
 
 @mod_evaluacion.route('/verControlador/<codigo>')
 def verControlador(codigo=None):
+  if (validate_login(request)):
     if (codigo == None):
       return render_template('Error.html', codigo=codigo)
     else:
       reg = personas.obtenerControladorPorProceso(codigo)
       proc = procesos.obtenerProcesosControlador(codigo)
       return render_template('controlador_view.tpl.html',registro=reg,procesos=proc)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/editarControlador/<codigo>/<idproceso>')
 def editarControlador(codigo=None,idproceso=None):
+  if (validate_login(request)):
     if (idproceso == None):
       return render_template('Error.html', codigo=codigo)
     else:
       reg = personas.obtenerControladorPorProceso(codigo,idproceso)
       return render_template('controlador_edit.tpl.html',registro=reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/nuevoControlador/')
 def nuevoControlador():
-  pro = procesos.obtenerProcesos()
-  return render_template('controlador_new.tpl.html',procesos=pro)
+  if (validate_login(request)):
+    pro = procesos.obtenerProcesos()
+    return render_template('controlador_new.tpl.html',procesos=pro)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/administrador/')
 def administrador():
-  cantPersonas = personas.getCantidadPersonas()
-  cantProcesos = procesos.getCantidadProcesos()
-  cantControladores = personas.getCantidadControladores()
-  return render_template('administrador.tpl.html',nPer=cantPersonas,nProc=cantProcesos,nCont=cantControladores)
+  #print(validate_login(request))
+  if (validate_login(request)):
+    cantPersonas = personas.getCantidadPersonas()
+    cantProcesos = procesos.getCantidadProcesos()
+    cantControladores = personas.getCantidadControladores()
+    return render_template('administrador.tpl.html',nPer=cantPersonas,nProc=cantProcesos,nCont=cantControladores)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
-@mod_evaluacion.route('/persona/')
+@mod_evaluacion.route('/persona/',methods=['GET','POST'])
 def persona():
-  reg = funciones.getAllWorkers()
-  return render_template('persona_index.tpl.html',registros=reg)
+  if (validate_login(request)):
+    if (request.method == 'GET'):
+      reg = funciones.getAllWorkers()
+      return render_template('persona_index.tpl.html',registros=reg)
+    else:
+      codigo = request.form.get('codigo', '')
+      per = personas.getPersonaSola(codigo)
+      db.session.delete(per)
+      db.session.commit()
+      reg = funciones.getAllWorkers()
+      return render_template('persona_index.tpl.html',registros=reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/nuevoPersona/')
 def nuevoPersona():
-  return render_template('persona_new.tpl.html')
+  if (validate_login(request)):
+    return render_template('persona_new.tpl.html')
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/editarPersona/<codigo>')
 def editarPersona(codigo=None):
-  reg = personas.getPersonaSola(codigo)
-  return render_template('persona_edit.tpl.html',registro=reg)
+  if (validate_login(request)):
+    reg = personas.getPersonaSola(codigo)
+    return render_template('persona_edit.tpl.html',registro=reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/verPersona/<codigo>')
 def verPersona(codigo=None):
+  if (validate_login(request)):
     if (codigo == None):
       return render_template('Error.html', codigo=codigo)
     else:
       reg = personas.obtenerControladorPorProceso(codigo)
       proc = procesos.obtenerProcesosControlador(codigo)
       return render_template('persona_view.tpl.html',registro=reg,procesos=proc)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
-@mod_evaluacion.route('/proceso/')
+@mod_evaluacion.route('/proceso/', methods=['GET','POST'])
 def proceso():
-  reg = funciones.getAllProcesos()
-  return render_template('procesos_index.tpl.html',registros=reg)
+  if (validate_login(request)):
+    if request.method == 'GET':
+      reg = funciones.getAllProcesos()
+      return render_template('procesos_index.tpl.html',registros=reg)
+    else:
+      idproceso = request.form.get('idproceso', '')
+      proc = procesos.getProcesoPorId(idproceso)
+      print(idproceso)
+      db.session.delete(proc)
+      db.session.commit()
+      reg = funciones.getAllProcesos()
+      return render_template('procesos_index.tpl.html',registros=reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/nuevoProceso/')
 def nuevoProceso():
-  pro = funciones.getAllProcesos()
-  n = procesos.getCantidadProcesos()
-  return render_template('proceso_new.tpl.html',procesos=pro,cant=n)
+  if (validate_login(request)):
+    pro = funciones.getAllProcesos()
+    n = procesos.getCantidadProcesos()
+    return render_template('proceso_new.tpl.html',procesos=pro,cant=n)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))
 
 @mod_evaluacion.route('/editarProceso/<idproceso>')
 def editarProceso(idproceso=None):
-  reg = procesos.getProcesoPorId(idproceso)
-  return render_template('proceso_edit.tpl.html',registro=reg)
-
-@mod_evaluacion.route('/eliminarProceso/<idproceso>')
-def eliminarProceso(idproceso=None):
-  proc = procesos.getProcesoPorId(idproceso)
-  db.session.delete(proc)
-  db.session.commit()
-  reg = funciones.getAllProcesos()
-  return render_template('procesos_index.tpl.html',registros=reg)
+  if (validate_login(request)):
+    reg = procesos.getProcesoPorId(idproceso)
+    return render_template('proceso_edit.tpl.html',registro=reg)
+  else:
+    return redirect('login?dest=' + quote_plus(request.full_path))

@@ -4,148 +4,196 @@
 
 {% block styles %}
 <style>
-#lista-table_filter{
-  margin-top:1em;
-  margin-bottom:1em;
-  display: none;
-}
+
 </style>
 {% endblock %}
 
 {% block content%}
-<!--agregar aqui el html -->
-<div class="botones-cabecera" style="display: flex;">
-  <div class="pure-u-1">
-    <a class="pure-button" style="margin-top:5px;" id="asistencia2" href="/asistencia/">Asistencia Capacitación</a>
-    <a class="pure-button" style="margin-top:5px;" id="nuevo" href="/evaluacion/">Día de examen</a>
-  </div>
-</div>
-<h2>Evaluación de controlador</h2>
-<div class="pure-u-1 pure-u-md-1-3 pure-form">
-  <form id="form-evaluacion" class="pure-form-stacked">
-    <fieldset>
-    	<label for="codigo">Código de Coordinador:</label>
-      <input id="input-codigo" name="codigo" maxlength="8" autofocus/>
 
-      <label for="password">Contraseña:</label>
-      <input id="input-password" name="password" type="password"/>
+{% block user %}
+<h2>
+  {% if admin == 1 %}
+    Administrador
+  {% else %}
+    Coordinador
+  {% endif %}
+</h2>
+{% endblock %}
+<h1 style="display: none;" id="admin">{{ admin }}</h1>
+<div class="">
+  <div class="page-title">
+    <div class="title_left">
+      <h3> Evaluación de Controladores</h3>
+    </div>
+    <div class="title_right">
+      <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Evaluación<small id="subtitle">Ingresar</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <form class="form-horizontal form-label-left" id="form-evaluacion">
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="codigo">Código de Coordinador <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="input-codigo" class="form-control col-md-7 col-xs-12" maxlength="8" name="codigo" autofocus type="text">
+              </div>
+            </div>
 
-      <button type="submit" class="pure-button pure-button-primary">Ingresar</button>
-    </fieldset>
-  </form>
-</div>
-<div class="highlight" id=box>
-  <h3 id="respuesta" class="blue"></h3>
-  <div id=coordinadores>
-    {% for coordinador in coordinadores %}
-      <div class=coordinador>
-        <h3 id="coordinador" class="blue">Coordinador: {{ coordinador.nombres }}</h3>
-        <h3 style="display: none">{{ coordinador.codigo }}</h3>
-        <h3 style="display: none">{{ coordinador.password }}</h3>
-      </div>
-    {% endfor %}
-  </div>
-  <div id=asistentes>
-    {% for asist in asistentes %}
-      <div class=asistente>
-        <h3 id="asistente" class="blue">Asistente OCAI: {{ asist.nombres }}</h3>
-        <h3 style="display: none">{{ asist.codigo }}</h3>
-        <h3 style="display: none">{{ asist.cod_coord }}</h3>
-        <p class="horas" style="display: none;">{{ asist.hora_proceso }}</p>
-      </div>
-    {% endfor %}
-  </div>
-  <div id=apoyos>
-    {% for apoyo in apoyos %}
-      <div class=apoyo>
-        <h3 id="apoyo" class="blue">Apoyo OCAI: {{ apoyo.nombres }}</h3>
-        <h3 style="display: none">{{ apoyo.codigo }}</h3>
-        <h3 style="display: none">{{ apoyo.cod_coord }}</h3>
-        <p class="horas" style="display: none;">{{ apoyo.hora_proceso }}</p>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-<div class="highlight" id ="marcarTodos">
-  <p> Marcar a todos como: </p>
-  <form class="pure-form" id="form-todos">
-    <label for="option-one" class="pure-radio">
-      <input id="option-one" type="radio" name="optionsRadios" value="BUENO" checked>
-      BUENO: Que cumple con todos los criterios
-    </label>
-    <label for="option-two" class="pure-radio">
-      <input id="option-two" type="radio" name="optionsRadios" value="REGULAR">
-      REGULAR: No cumplió con un criterio
-    </label>
-    <label for="option-three" class="pure-radio">
-      <input id="option-three" type="radio" name="optionsRadios" value="MALO">
-      MALO: No cumple con dos o más criterios
-    </label>
-  </form> 
-  <button class="pure-button pure-button-primary" onclick="marcarTodosComo()">Aceptar</button>
-</div>
-<h3 class="right blue" id="numero" style="display: none"> </h3>
-<div class="botones" style="display: none;" id="botones">
-  <button id="btn-save" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
-  <button id="btn-edit" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
-</div>
-<div class="highlight" id="comentario" style="margin-top: 2em;">
-  <p>Comentarios de la Coordinación:</p>
-  <form class="pure-form">
-    <textarea type = "text" id="comentario-general" class= "text-obs" style="width:95%;" disabled>
-      
-    </textarea>
-  </form>
-</div>
-<table id="lista-table" class="pure-table pure-table-bordered" style="display: none; width:100%">
-  <div class="loader" id="loading2" style="display: none;"></div>
-  <thead>
-    <tr><th id="table-arrow">Nombres</th><th id="table-arrow">Código</th><th id="table-arrow">Aula</th><th id="table-arrow">Asistencia</th><th id="table-arrow">Calificación</th><th>Observaciones</th><th id = "cabecera_fecha" style="display: none;">Fecha del Proceso</th><th style="display:none;">Codigo Coordinador</th><th style="display: none;">Observación de Coordinación</th></tr>
-  </thead>
-  <tbody>
-    {% for reg in registros %}
-	    <tr class="registro">
-	    	<td>
-          {{ reg.nombres }}
-          <p style="display: none"> {{reg.es_apoyo}} </p>
-          <p style="display: none"> {{reg.es_asistente}} </p>
-          <p style="display: none"> {{reg.es_coord}} </p>
-        </td>
-	    	<td>{{ reg.codigo }}</td>
-	    	<td>{{ reg.aula }}</td>
-        <td style="text-align: center;">
-          <form class="pure-form">
-            <input class="radio-asistencia" type="checkbox" name="optionsRadios" value="asistio" disabled>
+            <div class="item form-group">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">Contraseña <span class="required">*</span></label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input id="input-password" class="form-control col-md-7 col-xs-12" maxlength="8" name="codigo" autofocus type="password">
+              </div>
+            </div>
           </form>
-          <p class="horas-controlador" style="display: none;">{{ reg.hora_proceso }}</p>
-        </td>
-	    	<td>
-        	<form class="pure-form">
-          	<select disabled="true" class="combo_calificacion">
-           		<option value="0">Seleccione</option>
-	            <option value="BUENO">BUENO</option>
-	            <option value="REGULAR">REGULAR</option>
-	            <option value="MALO">MALO</option>
-	          </select>
-	          <p class="valor" style="display:none;">{{reg.calificacion}}</p>
-	        </form>
-      	</td>
-      	<td>
-      		<form class="pure-form">
-      			<textarea type = "text" class= "text-obs" style="width:95%;" disabled="true" class="pure-input-1-2">{{ reg.obs_proceso }}</textarea>
-      		</form>
-      	</td>
-      	<td class="fecha-proceso" style="display: none;">{{ reg.fecha_proceso }}</td>
-        <td style="display:none;">{{ reg.cod_coord }}</td>
-        <td style="display:none;">{{ reg.obs_coordinacion }}</td>
-	    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<div class="botones" style="display: none;" id="botones2">
-  <button id="btn-save2" class="pure-button nuevo-editar" onclick="guardar()">Guardar</button>
-  <button id="btn-edit2" class="pure-button nuevo-editar" onclick="editar()">Editar</button>
+          <div class="ln_solid"></div>
+
+          <div class="form-group">
+            <div class="col-md-6 col-md-offset-3">
+              <button id="send" class="btn btn-success" onclick="filtrarTabla()">Ingresar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 col-xs-12" style="display: none;" id="bloque-listado">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Evaluación<small id="subtitle">Marque con un check si asistió y realice la calificación</small></h2>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div class="highlight" id=box>
+            <h3 id="respuesta" class="blue"></h3>
+            <div id=coordinadores>
+              {% for coordinador in coordinadores %}
+                <div class=coordinador>
+                  <h3 id="coordinador" class="blue">Coordinador: {{ coordinador.nombres }}</h3>
+                  <h3 style="display: none">{{ coordinador.codigo }}</h3>
+                  <h3 style="display: none">{{ coordinador.password }}</h3>
+                </div>
+              {% endfor %}
+            </div>
+            <div id=asistentes>
+              {% for asist in asistentes %}
+                <div class=asistente>
+                  <h3 id="asistente" class="blue">Asistente OCAI: {{ asist.nombres }}</h3>
+                  <h3 style="display: none">{{ asist.codigo }}</h3>
+                  <h3 style="display: none">{{ asist.cod_coord }}</h3>
+                  <p class="horas" style="display: none;">{{ asist.hora_proceso }}</p>
+                </div>
+              {% endfor %}
+            </div>
+            <div id=apoyos>
+              {% for apoyo in apoyos %}
+                <div class=apoyo>
+                  <h3 id="apoyo" class="blue">Apoyo OCAI: {{ apoyo.nombres }}</h3>
+                  <h3 style="display: none">{{ apoyo.codigo }}</h3>
+                  <h3 style="display: none">{{ apoyo.cod_coord }}</h3>
+                  <p class="horas" style="display: none;">{{ apoyo.hora_proceso }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="highlight" id ="marcarTodos">
+            <p> Marcar a todos como: </p>
+            <form class="form-horizontal form-label-left" id="form-todos">
+              <label for="option-one" class="flat">
+                <input id="option-one" type="radio" name="optionsRadios" value="BUENO" checked>
+                BUENO: Que cumple con todos los criterios
+              </label>
+              <label for="option-two" class="flat">
+                <input id="option-two" type="radio" name="optionsRadios" value="REGULAR">
+                REGULAR: No cumplió con un criterio
+              </label>
+              <label for="option-three" class="flat">
+                <input id="option-three" type="radio" name="optionsRadios" value="MALO">
+                MALO: No cumple con dos o más criterios
+              </label>
+            </form> 
+            <button class="btn btn-primary" onclick="marcarTodosComo()">Aceptar</button>
+          </div>
+
+          <h3 class="right blue" id="numero" style="display: none"> </h3>
+          <div class="botones" style="display: none;" id="botones">
+            <button id="btn-save" class="btn btn-primary" onclick="guardar()">Guardar</button>
+            <button id="btn-edit" class="btn btn-warning" onclick="editar()">Editar</button>
+          </div>
+          <div class="highlight" id="comentario" style="margin-top: 2em;">
+            <p>Comentarios de la Coordinación:</p>
+            <form class="form-horizontal form-label-left">
+              <textarea type = "text" id="comentario-general" class= "text-obs" style="width:95%;" disabled>
+                
+              </textarea>
+            </form>
+          </div>
+          <table id="lista-table" class="table table-bordered" style="display: none; width:100%">
+            <div class="loader" id="loading2" style="display: none;"></div>
+            <thead>
+              <tr><th>Nombres</th><th>Código</th><th>Aula</th><th>Asistencia</th><th>Calificación</th><th>Observaciones</th><th style="display: none;">Fecha del Proceso</th><th style="display:none;">Codigo Coordinador</th><th style="display: none;">Observación de Coordinación</th></tr>
+            </thead>
+            <tbody>
+              {% for reg in registros %}
+                <tr class="registro">
+                  <td>
+                    {{ reg.nombres }}
+                    <p style="display: none"> {{reg.es_apoyo}} </p>
+                    <p style="display: none"> {{reg.es_asistente}} </p>
+                    <p style="display: none"> {{reg.es_coord}} </p>
+                  </td>
+                  <td>{{ reg.codigo }}</td>
+                  <td>{{ reg.aula }}</td>
+                  <td style="text-align: center;">
+                    <form class="form-horizontal form-label-left">
+                      <input class="radio-asistencia" type="checkbox" name="optionsRadios" value="asistio" disabled>
+                    </form>
+                    <p class="horas-controlador" style="display: none;">{{ reg.hora_proceso }}</p>
+                  </td>
+                  <td>
+                    <form class="form-horizontal form-label-left">
+                      <select disabled="true" class="form-control combo_calificacion">
+                        <option value="0">Seleccione</option>
+                        <option value="BUENO">BUENO</option>
+                        <option value="REGULAR">REGULAR</option>
+                        <option value="MALO">MALO</option>
+                      </select>
+                      <p class="valor" style="display:none;">{{reg.calificacion}}</p>
+                    </form>
+                  </td>
+                  <td>
+                    <form class="form-horizontal form-label-left">
+                      <textarea type = "text" class= "form-control text-obs" style="width:95%;" disabled="true" class="pure-input-1-2">{{ reg.obs_proceso }}</textarea>
+                    </form>
+                  </td>
+                  <td class="fecha-proceso" style="display: none;">{{ reg.fecha_proceso }}</td>
+                  <td style="display:none;">{{ reg.cod_coord }}</td>
+                  <td style="display:none;">{{ reg.obs_coordinacion }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="botones" style="display: none;" id="botones2">
+            <button id="btn-save2" class="btn btn-primary" onclick="guardar()">Guardar</button>
+            <button id="btn-edit2" class="btn btn-warning" onclick="editar()">Editar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!--agregar aqui el html -->
+
+
 {% endblock %}
 
 {% block scripts %}
@@ -425,13 +473,14 @@ function giveResponse(codigo,password){
     document.getElementById("comentario").style.display = "block";
     document.getElementById("marcarTodos").style.display = "block";
     document.getElementById("lista-table").style.display = "";
+    document.getElementById("bloque-listado").style.display = '';
     document.getElementById("botones").style.display = "";
     document.getElementById("botones2").style.display = "";
-    document.getElementById("lista-table_filter").style.display = "block";
+    //document.getElementById("lista-table_filter").style.display = "block";
     document.getElementById("numero").style.display = "";
     //document.getElementById("export-button").style.display = "";
-    $("#input-codigo").attr("disabled","disabled");
-    $("#input-password").attr("disabled","disabled");
+    document.getElementById("input-codigo").disabled = true;
+    document.getElementById("input-password").disabled = true;
     document.getElementById("respuesta").innerHTML = "Coordinador: ADMINISTRADOR DEL SISTEMA"
   }else if(es_codigo(codigo)){
     if(es_password(codigo,password)){
@@ -440,13 +489,14 @@ function giveResponse(codigo,password){
       document.getElementById("comentario").style.display = "block";
       document.getElementById("marcarTodos").style.display = "block";
       document.getElementById("lista-table").style.display = "";
+      document.getElementById("bloque-listado").style.display = '';
       document.getElementById("botones").style.display = "";
       document.getElementById("botones2").style.display = "";
-      document.getElementById("lista-table_filter").style.display = "block";
+      //document.getElementById("lista-table_filter").style.display = "block";
       document.getElementById("numero").style.display = "";
       //document.getElementById("export-button").style.display = "";
-      $("#input-codigo").attr("disabled","disabled");
-      $("#input-password").attr("disabled","disabled");
+      document.getElementById("input-codigo").disabled = true;
+      document.getElementById("input-password").disabled = true;
     } else {
       alert("La contraseña no es la correcta");
       document.getElementById("numero").style.display = "none";
@@ -458,12 +508,13 @@ function giveResponse(codigo,password){
     document.getElementById("comentario").style.display = "none";
     document.getElementById("numero").style.display = "none";
     document.getElementById("lista-table").style.display = "none";
+    document.getElementById("bloque-listado").style.display = 'none';
     document.getElementById("botones").style.display = "none";
     document.getElementById("botones2").style.display = "none";
-    document.getElementById("lista-table_filter").style.display = "none";
+    //document.getElementById("lista-table_filter").style.display = "none";
     //document.getElementById("export-button").style.display = "none";
-    $("#input-codigo").removeAttr("disabled").val("").focus();
-    $("#input-password").removeAttr("disabled").val("")
+    document.getElementById("input-codigo").disabled = false;
+    document.getElementById("input-password").disabled = false;
     document.getElementById("respuesta").innerHTML = codigo + " no es el código de un coordinador."
   }
 }
@@ -520,26 +571,8 @@ function inicializarTabla(){
   }
 }
 
-$(document).ready(function() {
-  
-  $("#lista-table").DataTable({
-    "paging": false,
-    "info":false,
-        "language":{
-          "search": "Buscar: "
-        }
-  });
-
-
-
-  inicializarTabla();
-
-  blockSaveEdit(1);
-
-  $("#lista-table_filter").addClass("pure-form");
-
-  $("#form-evaluacion").submit(function(){
-    // Declare variables 
+function filtrarTabla() {
+// Declare variables 
     var input, filter, table, tr, td, i,fecha;
     var cont = 0;
     input = document.getElementById("input-codigo").value;
@@ -547,6 +580,8 @@ $(document).ready(function() {
     filter = input.toUpperCase();
     table = document.getElementById("lista-table");
     tr = table.getElementsByTagName("tr");
+
+    document.getElementById("subtitle").innerHTML = "Registrar"
     // Loop through all table rows, and hide those who don't match the search query
     for (i = 0; i < tr.length; i++) {
       td = tr[i].getElementsByTagName("td")[7];
@@ -554,20 +589,20 @@ $(document).ready(function() {
       if (td) {
         //alert(td.innerHTML.toUpperCase());
         if(filter == "01123581"){
-        	tr[i].style.display = "";
+          tr[i].style.display = "";
           cont = cont + 1;
           if(fecha){
             //fecha.style.display = "";
           }
         }else {
-        	if (td.innerHTML.toUpperCase() == filter){
-          	tr[i].style.display = "";
+          if (td.innerHTML.toUpperCase() == filter){
+            tr[i].style.display = "";
             cont = cont + 1;
-        	} 
-        	else {
-          	//alert(td.innerHTML.toUpperCase());
-          	tr[i].style.display = "none";
-        	}
+          } 
+          else {
+            //alert(td.innerHTML.toUpperCase());
+            tr[i].style.display = "none";
+          }
         }
       } 
     }
@@ -630,8 +665,39 @@ $(document).ready(function() {
 
     //Delete input and give respons
     giveResponse(input,password);
+  // body...
+}
+
+function ocultarMostrarAdmin(){
+  a = document.getElementById("admin").innerHTML;
+  b = document.getElementById("admin-menu");
+  c = document.getElementById("admin-logout");
+  if (a==1){
+    b.style.display = '';
+    c.style.display = '';
+  }else {
+    b.style.display = 'none';
+    c.style.display = 'none';
+  }
+}
+
+$(document).ready(function() {
+  /*
+  $("#lista-table").DataTable({
+  });
+  */
+  ocultarMostrarAdmin();
+  inicializarTabla();
+
+  blockSaveEdit(1);
+
+  //$("#lista-table_filter").addClass("pure-form");
+/*
+  $("#form-evaluacion").submit(function(){
+    
     return false;
   });
+*/
 });
 </script>
 {% endblock %}
